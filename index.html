@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Book of Nights">
+<meta name="theme-color" content="#0b1124">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-512.png">
+<title>The Book of Nights</title>
+<style>
+@font-face{font-family:Fraunces;src:url(fonts/Fraunces-SemiBold.woff) format("woff");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:Fraunces;src:url(fonts/Fraunces-SemiBoldItalic.woff) format("woff");font-weight:600;font-style:italic;font-display:swap}
+@font-face{font-family:Alegreya;src:url(fonts/Alegreya-Regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:Alegreya;src:url(fonts/Alegreya-Italic.woff) format("woff");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:Alegreya;src:url(fonts/Alegreya-Bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}
+:root{
+  --navy:#0b1124; --navy2:#10182F; --ink:#1D2440; --gold:#F5C76B; --gold2:#e9b04a; --cream:#F6EEDC;
+  --text:#f4f1ea; --muted:#a9b0c8; --leather:#6b3f22; --leather2:#4a2a16;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--navy);color:var(--text);font-family:Alegreya,Georgia,serif;font-size:18px;line-height:1.45;
+  background-image:
+   radial-gradient(1px 1px at 12% 18%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff6 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 42% 8%,#ffe6a8aa 50%,transparent 51%),radial-gradient(1px 1px at 88% 34%,#fff5 50%,transparent 51%),
+   radial-gradient(1px 1px at 22% 56%,#fff4 50%,transparent 51%),radial-gradient(1.5px 1.5px at 64% 66%,#ffe6a888 50%,transparent 51%),
+   radial-gradient(1px 1px at 8% 84%,#fff5 50%,transparent 51%),radial-gradient(1px 1px at 92% 78%,#fff4 50%,transparent 51%),
+   radial-gradient(ellipse at 50% -20%,#1d2a55 0%,var(--navy) 60%);
+  background-attachment:fixed;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+.hidden{display:none!important}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-style:italic;color:var(--gold);margin:0}
+.wrap{max-width:980px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 48px}
+
+/* ---------- lock ---------- */
+#lock{min-height:100vh;display:grid;place-items:center;padding:24px}
+.lockcard{width:min(420px,100%);text-align:center}
+.lockcard h1{font-size:40px;line-height:1.1;margin:18px 0 6px}
+.lockcard p{color:var(--muted);margin:0 0 22px}
+.lockbook{width:150px;height:200px;margin:0 auto;border-radius:6px 14px 14px 6px;position:relative;
+  background:linear-gradient(135deg,var(--leather),var(--leather2));box-shadow:0 18px 50px #0009, inset 0 0 0 3px #00000033;}
+.lockbook:before{content:"";position:absolute;inset:14px 14px 14px 22px;border:1.5px solid #f5c76b88;border-radius:6px}
+.lockbook .clasp{position:absolute;right:-10px;top:84px;width:34px;height:34px;border-radius:8px;background:linear-gradient(#f7d58b,#c9923a);box-shadow:0 2px 6px #0008;display:grid;place-items:center;color:#5a3412;font-size:18px}
+.field{display:flex;gap:10px}
+.field input{flex:1;min-width:0;font:inherit;font-size:20px;padding:14px 16px;border-radius:14px;border:1.5px solid #f5c76b55;background:#ffffff0d;color:var(--text);outline:none}
+.field input:focus{border-color:var(--gold)}
+.btn{border:0;border-radius:14px;padding:14px 20px;background:linear-gradient(#f7d58b,var(--gold2));color:#3a230d;font-family:Fraunces,serif;font-weight:600;font-size:18px;box-shadow:0 4px 0 #9a6a25}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #9a6a25}
+.btn.ghost{background:#ffffff12;color:var(--text);box-shadow:none;border:1.5px solid #ffffff22}
+.err{color:#ffb4a8;min-height:24px;margin-top:10px;font-size:16px}
+
+/* ---------- home ---------- */
+header.top{display:flex;align-items:center;gap:18px;margin:8px 0 22px}
+header.top .t small{display:block;font-family:Fraunces,serif;font-style:normal;font-size:13px;letter-spacing:.14em;color:var(--gold);opacity:.85}
+header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
+.book{flex:none;width:86px;height:112px;border-radius:4px 10px 10px 4px;position:relative;background:linear-gradient(135deg,var(--leather),var(--leather2));box-shadow:0 10px 28px #0008}
+.book:before{content:"";position:absolute;inset:9px 9px 9px 14px;border:1px solid #f5c76b77;border-radius:4px}
+.stitches{position:absolute;left:16px;right:12px;top:50%;height:2px;transform:translateY(-50%);display:flex;justify-content:space-between}
+.stitches i{width:7px;height:3px;border-radius:2px;background:#00000055}
+.stitches i.on{background:var(--gold);box-shadow:0 0 6px #f5c76bcc}
+.stitchnote{color:var(--muted);font-size:15px;margin-top:4px}
+.tonight{border-radius:var(--r);padding:18px 20px;margin:0 0 22px;background:linear-gradient(135deg,#1c2a58,#141d3c);border:1.5px solid #f5c76b44;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tonight .what{flex:1;min-width:220px}
+.tonight .what small{font-family:Fraunces,serif;letter-spacing:.12em;color:var(--gold);font-size:13px}
+.tonight .what h2{font-size:24px;margin:2px 0}
+.count{font-family:Fraunces,serif;font-size:28px;color:var(--text);font-variant-numeric:tabular-nums}
+
+.month{margin-bottom:26px}
+.month h2{font-size:26px;margin:0 0 12px}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.dow div{text-align:center;color:var(--muted);font-size:14px;font-family:Fraunces,serif;letter-spacing:.08em}
+.cell{aspect-ratio:2/3;border-radius:12px;background:#ffffff07;border:1px solid #ffffff10;position:relative;overflow:hidden;padding:0;text-align:left}
+.cell .d{position:absolute;top:6px;left:8px;font-family:Fraunces,serif;font-size:15px;color:#ffffffaa;z-index:3;text-shadow:0 1px 3px #000}
+.cell.empty{background:transparent;border-color:transparent}
+.cell.night{border:1.5px solid #f5c76b55;background:linear-gradient(160deg,#1b2650,#0e1530)}
+.cell .art{position:absolute;inset:0;background-size:cover;background-position:center}
+.cell .lbl{position:absolute;left:0;right:0;bottom:0;padding:18px 6px 6px;font-family:Fraunces,serif;font-style:italic;font-size:clamp(9px,1.5vw,13px);line-height:1.15;color:var(--gold);background:linear-gradient(transparent,#0b1124ee 45%);z-index:2}
+.cell .badge{position:absolute;top:6px;right:6px;z-index:3;font-size:13px;background:#0b1124cc;border:1px solid #f5c76b66;color:var(--gold);border-radius:999px;padding:1px 7px;font-family:Fraunces,serif}
+.cell.later .art{filter:blur(10px) brightness(.35) saturate(.4)}
+.cell.later .q{position:absolute;inset:0;display:grid;place-items:center;font-family:Fraunces,serif;font-style:italic;font-size:clamp(22px,5vw,44px);color:#f5c76b88;z-index:2}
+.cell.tomorrow .art{filter:brightness(.75)}
+.cell.tonightc{box-shadow:0 0 0 2px var(--gold),0 0 24px #f5c76b66}
+.cell.today .d{color:var(--gold)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:15px;margin-top:6px}
+
+/* ---------- modal (cover) ---------- */
+.overlay{position:fixed;inset:0;background:#05081acc;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:grid;place-items:center;padding:20px}
+.covercard{width:min(420px,100%);text-align:center}
+.coverimg{width:100%;aspect-ratio:2/3;border-radius:14px;background:#141d3c center/cover no-repeat;position:relative;box-shadow:0 20px 60px #000a;overflow:hidden;container-type:inline-size}
+.coverimg .ttl{position:absolute;left:0;right:0;top:0;padding:8cqw 7cqw 18cqw;background:linear-gradient(#0e1530f0 55%,transparent)}
+.coverimg .ttl small{font-family:Fraunces,serif;font-size:3.4cqw;letter-spacing:.14em;color:var(--gold)}
+.coverimg .ttl h3{font-size:8cqw;line-height:1.15;margin-top:1.5cqw}
+.lockpill{display:inline-flex;align-items:center;gap:8px;margin:16px 0 6px;padding:8px 16px;border-radius:999px;background:#ffffff10;border:1px solid #f5c76b55;font-family:Fraunces,serif;color:var(--gold)}
+.covercard p{color:var(--muted);margin:6px 0 16px}
+
+/* ---------- reader ---------- */
+#reader{position:fixed;inset:0;background:#05081a;z-index:60;display:grid;place-items:center}
+.page{position:relative;aspect-ratio:2/3;height:min(100vh,150vw);max-width:100vw;container-type:inline-size;overflow:hidden;background:#10182F center/cover no-repeat;user-select:none;-webkit-user-select:none}
+.page.noimg{background-image:radial-gradient(1px 1px at 20% 70%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 70% 80%,#fff5 50%,transparent 51%),radial-gradient(ellipse at 50% 120%,#25356e,#10182F 70%)}
+.shade{position:absolute;left:0;right:0;top:0;height:62%;background:linear-gradient(#0e1530e6 0%,#0e1530db 50%,#0e153000 100%);pointer-events:none}
+.page.real .shade{background:linear-gradient(#F6EEDCf2 0%,#F6EEDCe8 58%,#F6EEDC00 100%);height:72%}
+.txt{position:absolute;left:7.4cqw;right:7.4cqw;top:7.6cqw;font-family:Alegreya,serif;font-size:2.78cqw;line-height:1.25;color:#fff}
+.txt p{margin:0 0 1.16cqw}
+.txt h4{font-family:Fraunces,serif;font-style:italic;font-weight:600;color:var(--gold);font-size:4.4cqw;line-height:1.2;margin:0 0 1.9cqw}
+.page.real .txt{color:var(--ink);font-size:2.66cqw}
+.page.real .txt h4{color:var(--ink)}
+.txt .pause{border:1px solid var(--gold);background:#0e1530eb;border-radius:1.9cqw;padding:1.6cqw 1.9cqw;margin:1.4cqw -1.9cqw}
+.title .txt{text-align:center;top:8.5cqw}
+.title .lab{font-family:Fraunces,serif;color:var(--gold);font-size:2.1cqw;letter-spacing:.14em}
+.title .big{font-family:Fraunces,serif;font-style:italic;font-weight:600;color:var(--gold);font-size:6.25cqw;line-height:1.18;margin:1cqw 0 2cqw}
+.title .div{color:var(--gold);font-size:2.4cqw;letter-spacing:.6em}
+.title .sub{font-style:italic;font-size:2.55cqw;margin-top:1.2cqw}
+.pnum{position:absolute;left:50%;bottom:2.4cqw;transform:translateX(-50%);width:3.5cqw;height:3.5cqw;border-radius:50%;border:1px solid #ffffffb0;display:grid;place-items:center;font-size:1.5cqw;color:#fff}
+.page.real .pnum{color:var(--ink);border-color:#1d2440aa}
+.rbar{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px 10px;z-index:61;pointer-events:none}
+.rbar>*{pointer-events:auto}
+.chip{background:#0b1124b3;border:1px solid #ffffff2a;border-radius:999px;padding:8px 14px;font-size:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.navbtn{position:fixed;top:50%;transform:translateY(-50%);z-index:61;width:52px;height:52px;border-radius:50%;border:1px solid #ffffff30;background:#0b1124a6;font-size:24px;display:grid;place-items:center}
+.navbtn.prev{left:10px}.navbtn.next{right:10px}
+.endcard{position:absolute;inset:0;background:#0b1124f2;display:flex;flex-direction:column;justify-content:center;padding:7cqw;gap:2cqw;font-size:3cqw}
+.endcard h3{font-size:6cqw;text-align:center}
+.endcard label{font-family:Fraunces,serif;color:var(--gold);font-size:3cqw}
+.endcard textarea{width:100%;font:inherit;font-size:3cqw;min-height:9cqw;border-radius:2cqw;border:1px solid #f5c76b55;background:#ffffff10;color:#fff;padding:1.5cqw}
+.endcard .row{display:flex;gap:2cqw;justify-content:center;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.page{transition:opacity .25s}.fade{opacity:0}}
+.listview{display:none}
+@media (max-width:620px){
+  .calview{display:none}
+  .listview{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .listview .cell .d{font-size:14px}
+  .listview .cell .lbl{font-size:15px}
+  .navbtn{width:44px;height:44px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<section id="lock">
+  <div class="lockcard">
+    <div class="lockbook"><div class="clasp">✦</div></div>
+    <h1>The Book of Nights</h1>
+    <p>A family storybook. Enter the family password.</p>
+    <form id="lockform" class="field" autocomplete="off">
+      <input id="pw" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Family password" aria-label="Family password">
+      <button class="btn" type="submit">Open</button>
+    </form>
+    <div class="err" id="err" role="alert"></div>
+  </div>
+</section>
+
+<!-- HOME -->
+<main id="home" class="wrap hidden">
+  <header class="top">
+    <div class="book" aria-hidden="true"><div class="stitches" id="stitches"></div></div>
+    <div class="t">
+      <small id="weekLabel">THE BOOK OF NIGHTS</small>
+      <h1 id="series">Bedtime Adventures</h1>
+      <div class="stitchnote" id="stitchNote"></div>
+    </div>
+  </header>
+  <section class="tonight" id="tonightCard"></section>
+  <div id="months"></div>
+  <div class="legend"><span>📖 Open: read any time</span><span>✨ Tonight</span><span>🔒 Tomorrow: cover only</span><span>❔ Later: it's a surprise</span></div>
+</main>
+
+<!-- COVER PREVIEW -->
+<div class="overlay hidden" id="coverModal" role="dialog" aria-modal="true">
+  <div class="covercard">
+    <div class="coverimg" id="coverImg"><div class="ttl"><small id="coverLab"></small><h3 id="coverTitle"></h3></div></div>
+    <div class="lockpill">🔒 <span id="coverWhen"></span></div>
+    <p id="coverCount"></p>
+    <button class="btn ghost" id="coverClose" type="button">Back to the calendar</button>
+  </div>
+</div>
+
+<!-- READER -->
+<div id="reader" class="hidden">
+  <div class="rbar"><button class="chip" id="rClose" type="button">✕ Close</button><span class="chip" id="rPos"></span></div>
+  <button class="navbtn prev" id="rPrev" type="button" aria-label="Previous page">‹</button>
+  <div class="page" id="page"></div>
+  <button class="navbtn next" id="rNext" type="button" aria-label="Next page">›</button>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const STORE = "bookofnights.";
+let M = null, KEY = null, META = null, serverSkew = 0;
+const covers = {}, stories = {};
+
+/* ---------- crypto ---------- */
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function derive(pw) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(M.salt), iterations: M.iter, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+}
+async function decrypt(buf, key = KEY) {
+  const u = new Uint8Array(buf);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: u.slice(0, 12) }, key, u.slice(12));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+async function fetchBin(name) {
+  const r = await fetch("data/" + name);
+  if (!r.ok) throw new Error("missing " + name);
+  return decrypt(await r.arrayBuffer());
+}
+
+/* ---------- time: always the family time zone (from the manifest), server clock when online ---------- */
+const now = () => Date.now() + serverSkew;
+function tzOffsetMin(ts, tz) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(new Date(ts));
+  const v = (parts.find((p) => p.type === "timeZoneName") || {}).value || "GMT";
+  const m = v.match(/GMT([+-]\d+)(?::(\d+))?/);
+  return m ? (parseInt(m[1], 10) * 60 + Math.sign(parseInt(m[1], 10)) * (parseInt(m[2] || "0", 10))) : 0;
+}
+function localToUTC(dateStr, hour, tz) {
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  let guess = Date.UTC(y, mo - 1, d, hour, 0, 0);
+  for (let i = 0; i < 2; i++) guess = Date.UTC(y, mo - 1, d, hour, 0, 0) - tzOffsetMin(guess, tz) * 60000;
+  return guess;
+}
+const ymd = (ts) => new Intl.DateTimeFormat("en-CA", { timeZone: M.tz }).format(new Date(ts));
+const addDays = (s, k) => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d + k)).toISOString().slice(0, 10); };
+function stateOf(night) {
+  const t = now(), unlock = localToUTC(night.date, M.unlockHour, M.tz), today = ymd(t);
+  if (t >= unlock) return "open";
+  if (night.date === today) return "tonight";
+  if (night.date === addDays(today, 1)) return "tomorrow";
+  return "later";
+}
+function fmtCountdown(ms) {
+  if (ms <= 0) return "now";
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000), s = Math.floor((ms % 60000) / 1000);
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m ${String(s).padStart(2, "0")}s`;
+}
+const dayName = (dateStr) => new Date(dateStr + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
+
+/* ---------- boot ---------- */
+async function boot() {
+  const r = await fetch("data/manifest.json", { cache: "no-store" });
+  M = await r.json();
+  const sd = r.headers.get("Date");
+  if (sd) { const skew = Date.parse(sd) - Date.now(); if (Math.abs(skew) > 120000) serverSkew = skew; }
+  const saved = localStorage.getItem(STORE + "key");
+  if (saved) {
+    try {
+      KEY = await crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["decrypt"]);
+      await decrypt(b64(M.check).buffer);
+      return enter();
+    } catch (e) { localStorage.removeItem(STORE + "key"); KEY = null; }
+  }
+  $("pw").focus();
+}
+$("lockform").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("err").textContent = "Opening the book…";
+  try {
+    const k = await derive($("pw").value.trim().toLowerCase());
+    await decrypt(b64(M.check).buffer, k);
+    KEY = k;
+    const raw = new Uint8Array(await crypto.subtle.exportKey("raw", k));
+    localStorage.setItem(STORE + "key", btoa(String.fromCharCode(...raw)));
+    $("err").textContent = "";
+    enter();
+  } catch (err) { $("err").textContent = "That's not the family password. Try again!"; }
+});
+
+async function enter() {
+  $("lock").classList.add("hidden"); $("home").classList.remove("hidden");
+  try { META = await fetchBin("meta.bin"); $("series").textContent = META.series; } catch (e) {}
+  await Promise.all(M.nights.map(async (n) => { try { covers[n.n] = await fetchBin(`n${String(n.n).padStart(2, "0")}-cover.bin`); } catch (e) {} }));
+  render();
+  setInterval(render, 1000 * 20);
+  setInterval(tickCountdowns, 1000);
+}
+
+/* ---------- home ---------- */
+function shortTitle(title) {
+  const pre = (META && META.prefix) || "";
+  return pre && title.startsWith(pre) ? title.slice(pre.length) : title;
+}
+function render() {
+  const st = M.nights.map((n) => ({ n, s: stateOf(n) }));
+  const open = st.filter((x) => x.s === "open").length;
+  $("stitches").innerHTML = M.nights.map((_, i) => `<i class="${i < open ? "on" : ""}"></i>`).join("");
+  $("stitchNote").textContent = `${open} of ${M.nights.length} gold stitches mended this week`;
+  const first = M.nights[0].date, last = M.nights[M.nights.length - 1].date;
+  $("weekLabel").textContent = "TIME TRAVEL WEEK";
+  // tonight card
+  const tn = st.find((x) => x.s === "tonight") || st.find((x) => x.s === "tomorrow");
+  const lastOpen = [...st].reverse().find((x) => x.s === "open");
+  const tc = $("tonightCard");
+  if (tn) {
+    const unlock = localToUTC(tn.n.date, M.unlockHour, M.tz);
+    tc.innerHTML = `<div class="what"><small>${tn.s === "tonight" ? "TONIGHT" : "TOMORROW NIGHT"}</small><h2>${(covers[tn.n.n] || {}).title || "Night " + tn.n.n}</h2>
+      <div style="color:var(--muted)">The book opens at 9:00 pm${tn.s === "tomorrow" ? " on " + dayName(tn.n.date) : ""}.</div></div>
+      <div class="count" data-unlock="${unlock}">${fmtCountdown(unlock - now())}</div>`;
+    tc.onclick = () => showCover(tn.n);
+  } else if (lastOpen) {
+    tc.innerHTML = `<div class="what"><small>TONIGHT'S STORY IS OPEN</small><h2>${(covers[lastOpen.n.n] || {}).title || ""}</h2></div><button class="btn" type="button">Read it ▸</button>`;
+    tc.onclick = () => openReader(lastOpen.n);
+  } else tc.classList.add("hidden");
+  // only the weeks that contain story nights (Sunday → Saturday)
+  const today = ymd(now());
+  const dowOf = (ds) => new Date(ds + "T12:00:00Z").getUTCDay();
+  const start = addDays(M.nights[0].date, -dowOf(M.nights[0].date));
+  const lastD = M.nights[M.nights.length - 1].date, end = addDays(lastD, 6 - dowOf(lastD));
+  const cellsFor = [];
+  for (let ds = start; ds <= end; ds = addDays(ds, 1)) cellsFor.push(ds);
+  const monthName = (ds) => new Date(ds + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  const heading = monthName(start) === monthName(end) ? monthName(start) : monthName(start).split(" ")[0] + " – " + monthName(end);
+  const cellHTML = (ds, list) => {
+    const d = Number(ds.slice(8)), night = M.nights.find((n) => n.date === ds), isToday = ds === today ? " today" : "";
+    if (!night) return list ? "" : `<div class="cell${isToday}"><span class="d">${d}</span></div>`;
+    const s = stateOf(night), cv = covers[night.n] || {};
+    const art = cv.img && s !== "later" ? `<div class="art" style="background-image:url(${cv.img})"></div>` : `<div class="art"></div>`;
+    const badge = { open: "📖", tonight: "✨", tomorrow: "🔒", later: "❔" }[s];
+    const lbl = s === "later" ? "" : `<div class="lbl">${cv.title ? shortTitle(cv.title) : "Night " + night.n}</div>`;
+    const dayTxt = list ? `<span class="d">${dayName(ds).slice(0, 3)} ${d}</span>` : `<span class="d">${d}</span>`;
+    return `<button type="button" class="cell night ${s}${s === "tonight" ? " tonightc" : ""}${isToday}" data-n="${night.n}" aria-label="${s === "later" ? "Night " + night.n + ", a surprise" : (cv.title || "Night " + night.n) + ", " + s}">
+        ${dayTxt}<span class="badge">${badge}</span>${art}${s === "later" ? '<div class="q">?</div>' : ""}${lbl}</button>`;
+  };
+  $("months").innerHTML = `<section class="month"><h2>${heading}</h2>
+    <div class="calview"><div class="dow">${["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((x) => `<div>${x}</div>`).join("")}</div>
+    <div class="grid" style="margin-top:6px">${cellsFor.map((ds) => cellHTML(ds, false)).join("")}</div></div>
+    <div class="listview">${cellsFor.map((ds) => cellHTML(ds, true)).join("")}</div></section>`;
+  document.querySelectorAll(".cell.night").forEach((el) => el.addEventListener("click", () => {
+    const night = M.nights.find((n) => n.n === Number(el.dataset.n)), s = stateOf(night);
+    if (s === "open") openReader(night); else if (s === "later") surprise(night); else showCover(night);
+  }));
+}
+function tickCountdowns() {
+  document.querySelectorAll("[data-unlock]").forEach((el) => {
+    const ms = Number(el.dataset.unlock) - now();
+    el.textContent = fmtCountdown(ms);
+    if (ms <= 0) render();
+  });
+}
+
+/* ---------- cover preview (tonight before 9 pm, and tomorrow) ---------- */
+function showCover(night) {
+  const cv = covers[night.n] || {};
+  $("coverImg").style.backgroundImage = cv.img ? `url(${cv.img})` : "";
+  $("coverLab").textContent = cv.label || "NIGHT " + night.n;
+  $("coverTitle").innerHTML = cv.title || "";
+  const unlock = localToUTC(night.date, M.unlockHour, M.tz);
+  $("coverWhen").textContent = `Opens ${stateOf(night) === "tonight" ? "tonight" : dayName(night.date)} at 9:00 pm`;
+  $("coverCount").innerHTML = `The book opens in <span class="count" style="font-size:20px" data-unlock="${unlock}">${fmtCountdown(unlock - now())}</span>`;
+  $("coverModal").classList.remove("hidden");
+}
+function surprise(night) {
+  $("coverImg").style.backgroundImage = "";
+  $("coverLab").textContent = "NIGHT " + night.n;
+  $("coverTitle").textContent = "It's a surprise…";
+  $("coverWhen").textContent = `${dayName(night.date)} at 9:00 pm`;
+  $("coverCount").textContent = "You'll see the cover the night before. No peeking, explorers!";
+  $("coverModal").classList.remove("hidden");
+}
+$("coverClose").onclick = () => $("coverModal").classList.add("hidden");
+$("coverModal").addEventListener("click", (e) => { if (e.target.id === "coverModal") $("coverModal").classList.add("hidden"); });
+
+/* ---------- reader ---------- */
+let R = { story: null, i: 0 };
+async function openReader(night) {
+  if (stateOf(night) !== "open") return showCover(night);
+  const key = `n${String(night.n).padStart(2, "0")}-story.bin`;
+  $("reader").classList.remove("hidden");
+  $("page").innerHTML = `<div class="txt" style="text-align:center;top:40%">Opening the book…</div>`;
+  if (!stories[night.n]) stories[night.n] = await fetchBin(key);
+  R = { story: stories[night.n], i: Number(localStorage.getItem(STORE + "pos" + night.n) || 0) };
+  if (R.i >= R.story.pages.length) R.i = 0;
+  draw();
+}
+function draw() {
+  const pages = R.story.pages, el = $("page");
+  if (R.i >= pages.length) return drawEnd();
+  const p = pages[R.i];
+  localStorage.setItem(STORE + "pos" + R.story.n, R.i);
+  el.className = "page " + p.kind + (p.img ? "" : " noimg");
+  el.style.backgroundImage = p.img ? `url(${p.img})` : "";
+  let inner = "";
+  if (p.kind === "title") {
+    const [lab, big, sub] = p.paras.map((x) => x.h);
+    inner = `<div class="txt"><div class="lab">${lab || ""}</div><div class="big">${big || ""}</div><div class="div">— ✦ —</div><div class="sub">${sub || ""}</div></div>`;
+  } else {
+    const head = p.heading ? `<h4>${p.heading}</h4>` : "";
+    const body = p.paras.map((x, j) => (p.kind === "real" && j === 0) ? `<h4>${x.h}</h4>` : `<p class="${x.pause ? "pause" : ""}">${x.h}</p>`).join("");
+    inner = `<div class="txt">${head}${body}</div>`;
+  }
+  el.innerHTML = `<div class="shade"></div>${inner}<div class="pnum">${p.num}</div>`;
+  $("rPos").textContent = `${R.i + 1} / ${pages.length}`;
+  $("rPrev").style.visibility = R.i === 0 ? "hidden" : "visible";
+}
+function drawEnd() {
+  const OLDER = (META && META.older) || "Big brother", YOUNGER = (META && META.younger) || "Little brother";
+  const n = R.story.n, saved = JSON.parse(localStorage.getItem(STORE + "fb" + n) || "{}");
+  const el = $("page"); el.className = "page noimg"; el.style.backgroundImage = "";
+  el.innerHTML = `<div class="endcard"><h3>The End</h3>
+    <label for="fbM">${OLDER}'s best moment tonight</label><textarea id="fbM">${saved.m || ""}</textarea>
+    <label for="fbL">${YOUNGER}'s best moment tonight</label><textarea id="fbL">${saved.l || ""}</textarea>
+    <label for="fbN">What should happen next time?</label><textarea id="fbN">${saved.x || ""}</textarea>
+    <div class="row"><button class="btn" id="fbSend" type="button">Send to Dad</button><button class="btn ghost" id="fbAgain" type="button">Read again</button></div></div>`;
+  $("rPos").textContent = "The End";
+  const collect = () => ({ m: $("fbM").value.trim(), l: $("fbL").value.trim(), x: $("fbN").value.trim() });
+  ["fbM", "fbL", "fbN"].forEach((id) => $(id).addEventListener("input", () => localStorage.setItem(STORE + "fb" + n, JSON.stringify(collect()))));
+  $("fbAgain").onclick = () => { R.i = 0; draw(); };
+  $("fbSend").onclick = async () => {
+    const f = collect();
+    const text = `Night ${n} · ${R.story.title.replace(/<[^>]+>/g, "")}\n${OLDER}'s best moment: ${f.m}\n${YOUNGER}'s best moment: ${f.l}\nNext time: ${f.x}`;
+    try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { return; }
+    try { await navigator.clipboard.writeText(text); $("fbSend").textContent = "Copied! Paste it to Dad"; } catch (e) { alert(text); }
+  };
+}
+const go = (d) => { if (!R.story) return; const max = R.story.pages.length; R.i = Math.max(0, Math.min(max, R.i + d)); draw(); };
+$("rNext").onclick = () => go(1); $("rPrev").onclick = () => go(-1);
+$("rClose").onclick = () => { $("reader").classList.add("hidden"); render(); };
+document.addEventListener("keydown", (e) => {
+  if ($("reader").classList.contains("hidden")) return;
+  if (e.key === "ArrowRight" || e.key === " ") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") $("rClose").onclick();
+});
+let sx = null;
+$("page").addEventListener("pointerdown", (e) => { sx = e.clientX; });
+$("page").addEventListener("pointerup", (e) => {
+  if (sx === null || e.target.closest("textarea,button")) { sx = null; return; }
+  const dx = e.clientX - sx; sx = null;
+  if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  else { const r = $("page").getBoundingClientRect(); go(e.clientX - r.left > r.width / 2 ? 1 : -1); }
+});
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+boot();
+</script>
+</body>
+</html>

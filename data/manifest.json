@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
+ "iter": 310000,
+ "check": "capufJePM1qLx/6N+f4TaGsUJe/aEVcUNToVEHvZ6M3DJtzzmbuiOzQ=",
+ "tz": "America/New_York",
+ "unlockHour": 21,
+ "nights": [
+  {
+   "n": 5,
+   "date": "2026-11-16",
+   "pages": 27,
+   "images": 1
+  },
+  {
+   "n": 6,
+   "date": "2026-11-17",
+   "pages": 22,
+   "images": 0
+  },
+  {
+   "n": 7,
+   "date": "2026-11-18",
+   "pages": 24,
+   "images": 0
+  },
+  {
+   "n": 8,
+   "date": "2026-11-19",
+   "pages": 23,
+   "images": 0
+  },
+  {
+   "n": 9,
+   "date": "2026-11-20",
+   "pages": 22,
+   "images": 0
+  },
+  {
+   "n": 10,
+   "date": "2026-11-21",
+   "pages": 22,
+   "images": 0
+  },
+  {
+   "n": 11,
+   "date": "2026-11-22",
+   "pages": 21,
+   "images": 0
+  }
+ ]
+}
