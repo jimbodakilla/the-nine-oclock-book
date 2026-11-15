@@ -1,6 +1,6 @@
 // Offline support: app shell cached; story files cached after first open; manifest always fresh when online.
-const C = "bookofnights-v2";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-512.png",
+const C = "bookofnights-v3";
+const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-512.png", "icon-180.png", "art/lock-wide.webp", "art/lock-tall.webp", "art/home-sky.webp", "art/card-mystery.webp", "art/card-tonight.webp", "art/end-night.webp",
   "fonts/Fraunces-SemiBold.woff", "fonts/Fraunces-SemiBoldItalic.woff", "fonts/Alegreya-Regular.woff",
   "fonts/Alegreya-Italic.woff", "fonts/Alegreya-Bold.woff"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
