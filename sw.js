@@ -1,5 +1,5 @@
 // Offline support: app shell cached; story files cached after first open; manifest always fresh when online.
-const C = "bookofnights-v1";
+const C = "bookofnights-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-512.png",
   "fonts/Fraunces-SemiBold.woff", "fonts/Fraunces-SemiBoldItalic.woff", "fonts/Alegreya-Regular.woff",
   "fonts/Alegreya-Italic.woff", "fonts/Alegreya-Bold.woff"];

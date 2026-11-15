@@ -76,6 +76,11 @@ header.top h1{font-size:clamp(26px,4vw,52px);line-height:1.08}
 .dow div{text-align:center;color:var(--muted);font-size:14px;font-family:Fraunces,serif;letter-spacing:.08em}
 .cell{aspect-ratio:2/3;border-radius:12px;background:#ffffff07;border:1px solid #ffffff10;position:relative;overflow:hidden;padding:0;text-align:left}
 .cell .d{position:absolute;top:6px;left:8px;font-family:Fraunces,serif;font-size:15px;color:#ffffffaa;z-index:3;text-shadow:0 1px 3px #000}
+.cell.night{display:flex;flex-direction:column;padding:0}
+.cell.night .strip{flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#0b1124;border-bottom:1px solid #f5c76b33;font-family:Fraunces,serif;font-size:15px;color:#ffffffcc;z-index:3}
+.cell.night .strip .d{position:static;text-shadow:none}
+.cell.night .strip .badge{position:static}
+.cell.night .artbox{position:relative;flex:1;overflow:hidden}
 .cell.empty{background:transparent;border-color:transparent}
 .cell.night{border:1.5px solid #f5c76b55;background:linear-gradient(160deg,#1b2650,#0e1530)}
 .cell .art{position:absolute;inset:0;background-size:cover;background-position:center}
@@ -341,8 +346,9 @@ function render() {
     const badge = { open: "📖", tonight: "✨", tomorrow: "🔒", later: "❔" }[s];
     const lbl = s === "later" ? "" : `<div class="lbl">${cv.title ? shortTitle(cv.title) : "Night " + night.n}</div>`;
     const dayTxt = list ? `<span class="d">${dayName(ds).slice(0, 3)} ${d}</span>` : `<span class="d">${d}</span>`;
+    const showLbl = cv.baked ? "" : lbl;   // Volume One covers already have their title painted in
     return `<button type="button" class="cell night ${s}${s === "tonight" ? " tonightc" : ""}${isToday}" data-n="${night.n}" aria-label="${s === "later" ? "Night " + night.n + ", a surprise" : (cv.title || "Night " + night.n) + ", " + s}">
-        ${dayTxt}<span class="badge">${badge}</span>${art}${s === "later" ? '<div class="q">?</div>' : ""}${lbl}</button>`;
+        <div class="strip">${dayTxt}<span class="badge">${badge}</span></div><div class="artbox">${art}${s === "later" ? '<div class="q">?</div>' : ""}${showLbl}</div></button>`;
   };
   $("months").innerHTML = `<section class="month"><h2>${heading}</h2>
     <div class="calview"><div class="dow">${["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((x) => `<div>${x}</div>`).join("")}</div>
@@ -389,18 +395,18 @@ async function openReader(night) {
   if (stateOf(night) !== "open") return showCover(night);
   SFX.unlock();
   const key = `n${String(night.n).padStart(2, "0")}-story.bin`;
+  R = { story: null, i: 0 };            // forget the previous story completely
+  $("rPos").textContent = "…";
   $("reader").classList.remove("hidden");
   $("page").innerHTML = `<div class="txt" style="text-align:center;top:40%">Opening the book…</div>`;
   if (!stories[night.n]) stories[night.n] = await fetchBin(key);
-  R = { story: stories[night.n], i: Number(localStorage.getItem(STORE + "pos" + night.n) || 0) };
-  if (R.i >= R.story.pages.length) R.i = 0;
+  R = { story: stories[night.n], i: 0 };   // a story ALWAYS opens on its first page
   draw();
 }
 function draw() {
   const pages = R.story.pages, el = $("page");
   if (R.i >= pages.length) return drawEnd();
   const p = pages[R.i];
-  localStorage.setItem(STORE + "pos" + R.story.n, R.i);
   el.className = "page " + p.kind + (p.img ? "" : " noimg");
   el.style.backgroundImage = p.img ? `url(${p.img})` : "";
   let inner = "";
@@ -408,10 +414,10 @@ function draw() {
     el.innerHTML = "";
     $("rPos").textContent = `${R.i + 1} / ${pages.length}`;
     $("rPrev").style.visibility = R.i === 0 ? "hidden" : "visible";
-    SFX.set(p.amb);
+    SFX.set(p.amb); SFX.fx(p.fx);
     return;
   }
-  SFX.set(p.amb);
+  SFX.set(p.amb); SFX.fx(p.fx);
   if (p.kind === "title") {
     const [lab, big, sub] = p.paras.map((x) => x.h);
     inner = `<div class="txt"><div class="lab">${lab || ""}</div><div class="big">${big || ""}</div><div class="div">— ✦ —</div><div class="sub">${sub || ""}</div></div>`;
@@ -521,6 +527,32 @@ const SFX = (() => {
     beep: (o, T) => { const n = noise(); n.connect(filt("bandpass", 2400, 0.8)).connect(gain(0.03)).connect(o); every(650, 650, () => ping(o, 1000, 0.28, 0.06, "sine"), T); return [n]; },
     magic: (o, T) => { const notes = [1046, 1175, 1318, 1568, 1760, 2093]; every(500, 1500, () => ping(o, notes[Math.floor(Math.random() * notes.length)], 1.6, 0.045), T); return []; },
   };
+  // one-time effects (played once when a page opens)
+  const FX = {
+    whoosh: (o) => { const s = ctx.createBufferSource(); s.buffer = noiseBuf; const f = filt("bandpass", 300, 1.2), g = gain(0), t0 = ctx.currentTime;
+      f.frequency.exponentialRampToValueAtTime(3200, t0 + 0.9); g.gain.linearRampToValueAtTime(0.5, t0 + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+      s.connect(f).connect(g).connect(o); s.start(t0, Math.random()); s.stop(t0 + 1.2); },
+    crack: (o) => { burst(o, "highpass", 1800, 0.18, 0.9); burst(o, "lowpass", 160, 0.5, 0.7); setTimeout(() => burst(o, "highpass", 2500, 0.12, 0.5), 120); },
+    splash: (o) => { burst(o, "bandpass", 700, 0.7, 0.9); setTimeout(() => burst(o, "highpass", 3000, 0.9, 0.35), 120); },
+    cheer: (o) => { burst(o, "bandpass", 1100, 2.6, 0.7); for (let k = 0; k < 14; k++) setTimeout(() => burst(o, "highpass", 2200, 0.05, 0.4), 200 + Math.random() * 2000); },
+    thunder: (o) => { burst(o, "lowpass", 110, 4, 0.95); setTimeout(() => burst(o, "lowpass", 70, 3, 0.6), 600); },
+    chime: (o) => { [1046, 1318, 1568, 2093].forEach((f, k) => setTimeout(() => ping(o, f, 1.8, 0.07), k * 150)); },
+    roar: (o) => { const s = ctx.createOscillator(), f = filt("lowpass", 320), g = gain(0), t0 = ctx.currentTime; s.type = "sawtooth";
+      s.frequency.setValueAtTime(90, t0); s.frequency.exponentialRampToValueAtTime(55, t0 + 1.8); g.gain.linearRampToValueAtTime(0.18, t0 + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.9);
+      s.connect(f).connect(g).connect(o); s.start(t0); s.stop(t0 + 2); burst(o, "lowpass", 260, 1.8, 0.35); },
+    bell: (o) => { ping(o, 1320, 1.6, 0.08); ping(o, 1980, 1.2, 0.04); },
+    click: (o) => { burst(o, "highpass", 3500, 0.05, 0.6); },
+    beeps: (o) => { for (let k = 0; k < 3; k++) setTimeout(() => ping(o, 1000, 0.28, 0.07), k * 620); },
+    alarm: (o) => { for (let k = 0; k < 4; k++) setTimeout(() => ping(o, k % 2 ? 660 : 880, 0.18, 0.05, "square"), k * 260); },
+    zap: (o) => { ping(o, 1400, 0.35, 0.08, "sawtooth", 180); burst(o, "highpass", 2500, 0.3, 0.4); },
+    rumble: (o) => { burst(o, "lowpass", 90, 3.2, 0.8); },
+  };
+  function fx(names) {
+    if (!ctx || !names || !on) return;
+    const out = gain(0.9); out.connect(master);
+    names.forEach((n, k) => FX[n] && setTimeout(() => FX[n](out), 350 + k * 400));
+    setTimeout(() => out.disconnect(), 7000);
+  }
   function stopLayer(L, fade = 1.2) {
     const t0 = ctx.currentTime; L.out.gain.cancelScheduledValues(t0); L.out.gain.setValueAtTime(L.out.gain.value, t0); L.out.gain.linearRampToValueAtTime(0, t0 + fade);
     L.timers.forEach(clearTimeout);
@@ -538,7 +570,7 @@ const SFX = (() => {
   }
   function stop() { if (!ctx) return; current.layers.forEach((L) => stopLayer(L, 0.8)); current = { key: "", layers: [] }; }
   function toggle() { on = !on; localStorage.setItem(STORE + "sound", on ? "on" : "off"); unlock(); master.gain.linearRampToValueAtTime(on ? VOL : 0, ctx.currentTime + 0.4); }
-  return { unlock, set, stop, toggle };
+  return { unlock, set, stop, toggle, fx };
 })();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
