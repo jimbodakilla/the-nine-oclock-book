@@ -186,19 +186,28 @@ h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-style:italic;co
 .mbtn:disabled{opacity:.25;cursor:default}
 .month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(5px,1vw,12px);max-width:940px;margin:0 auto}
 .month .wd{text-align:center;font-family:Fraunces,serif;font-size:13px;letter-spacing:.1em;color:#aab1cf;padding-bottom:4px}
-.mcell{position:relative;min-width:0;aspect-ratio:3/4;border-radius:12px;background:#ffffff06;border:1px solid #ffffff10;padding:0;color:inherit;text-align:left}
+.mcell{position:relative;min-width:0;aspect-ratio:3/4;border-radius:12px;background:#ffffff05;border:0;padding:0;color:inherit;text-align:left}
 .mcell.out{visibility:hidden}
-.mcell .num{position:absolute;top:6px;left:8px;z-index:3;font-family:Fraunces,serif;font-size:15px;color:#c7cbe0;text-shadow:0 1px 6px #000}
-.mcell.story{border:0;cursor:pointer}
+.mcell.short{aspect-ratio:auto;height:40px;background:none}
+.mcell .num{position:absolute;top:7px;left:9px;z-index:3;font-family:Fraunces,serif;font-size:14px;color:#7d84a3}
+.mcell.short .num{top:10px}
+.mcell.story{cursor:pointer;background:none}
+.mcell.story .num{top:6px;left:6px;padding:1px 8px;border-radius:999px;background:#070b1ad9;color:var(--text);font-size:13px;line-height:1.5}
 .mcell.story .art{position:absolute;inset:0;aspect-ratio:auto;border-radius:12px;background:#141d3c center 78%/cover no-repeat;box-shadow:0 8px 20px #0008,0 0 0 1px #ffffff1c;transition:transform .2s,box-shadow .2s}
-.mcell.story:hover .art,.mcell.story:focus-visible .art{transform:translateY(-4px);box-shadow:0 14px 30px #000a,0 0 0 2px #f5c76b99}
+.mcell.story.v1 .art{background-size:auto 150%;background-position:center 100%}
+.mcell.story .art::after{content:"";position:absolute;inset:auto 0 0 0;height:48%;border-radius:0 0 12px 12px;background:linear-gradient(transparent,#070b1af0)}
+.mcell.later .art::after{display:none}
+.mcell.story:hover .art,.mcell.story:focus-visible .art{transform:translateY(-4px);box-shadow:0 16px 32px #000b,0 0 0 1px #ffffff40}
+.mcell .cap{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:clamp(11px,1.25vw,14px);line-height:1.15;color:#f8ecd0;text-shadow:0 1px 6px #000;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcell.later{opacity:.55}
 .mcell.later .art{background-image:url(art/card-mystery.webp)!important;background-position:center}
-.mcell.tomorrow .art{filter:saturate(.75) brightness(.7)}
-.mcell.today{outline:2px solid var(--gold);outline-offset:2px}
-.mcell.today .num{color:var(--gold)}
-.mcell .mark{position:absolute;right:6px;bottom:6px;z-index:3;min-width:24px;height:24px;padding:0 6px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-family:Fraunces,serif;font-weight:600}
-.mcell.done .mark{background:var(--gold);color:#2a1a06}
-.mcell.locked .mark{background:#070b1acc;border:1px solid #f5c76b66;color:var(--gold)}
+.mcell.tomorrow .art{filter:saturate(.8) brightness(.75)}
+.mcell.today .art{box-shadow:0 0 0 2px var(--gold),0 0 30px #f5c76b55,0 8px 20px #0008}
+.mcell.today .num{background:var(--gold);color:#2a1a06}
+.mcell .mark{position:absolute;right:6px;top:6px;z-index:3;height:22px;min-width:22px;padding:0 7px;border-radius:999px;display:grid;place-items:center;font-size:11.5px;font-family:Fraunces,serif;font-weight:600;white-space:nowrap}
+.mcell.done .mark{background:var(--gold);color:#2a1a06;padding:0}
+.mcell.locked .mark{background:#070b1ad9;border:1px solid #f5c76b77;color:var(--gold)}
 .monthlist{display:none}
 .mempty{text-align:center;color:#aab1cf}
 @media (max-width:700px){
@@ -564,19 +573,25 @@ async function renderLibrary() {
 function drawMonth(m, inMonth) {
   const [y, mo] = m.split("-").map(Number), first = new Date(Date.UTC(y, mo - 1, 1)), days = new Date(Date.UTC(y, mo, 0)).getUTCDate();
   const byDate = Object.fromEntries(inMonth.map((n) => [n.date, n])), todayStr = ymd(now()), rs = readSet();
+  // weeks with no story shrink to a thin row of dates, so the stories fill the screen
+  const weekHasStory = (ds) => { const t = new Date(ds + "T12:00:00Z"), sun = new Date(t - t.getUTCDay() * 864e5);
+    for (let k = 0; k < 7; k++) { const x = new Date(+sun + k * 864e5).toISOString().slice(0, 10); if (byDate[x]) return true; } return false; };
   let html = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) => `<div class="wd" role="columnheader">${d}</div>`).join("");
-  for (let k = 0; k < first.getUTCDay(); k++) html += `<div class="mcell out" aria-hidden="true"></div>`;
+  const lead = weekHasStory(`${m}-01`) ? "" : " short";
+  for (let k = 0; k < first.getUTCDay(); k++) html += `<div class="mcell out${lead}" aria-hidden="true"></div>`;
   for (let d = 1; d <= days; d++) {
     const ds = `${m}-${String(d).padStart(2, "0")}`, n = byDate[ds], today = ds === todayStr;
-    if (!n) { html += `<div class="mcell${today ? " today" : ""}"><span class="num">${d}</span></div>`; continue; }
+    const short = !weekHasStory(ds) ? " short" : "";
+    if (!n) { html += `<div class="mcell${short}"><span class="num">${d}</span></div>`; continue; }
     const s = stateOf(n), cv = covers[n.n] || {}, done = s === "open" && rs.has(n.n);
     const title = s === "later" ? "A surprise" : shortTitle(cv.title || "Night " + n.n);
-    const mark = done ? "✓" : s === "open" ? "" : s === "later" ? "🔒" : "9 pm";
-    html += `<button type="button" class="mcell story ${s}${done ? " done" : ""}${s !== "open" ? " locked" : ""}${today ? " today" : ""}" data-n="${n.n}" aria-label="${dayName(ds)} ${d}: ${title}${done ? ", read" : ""}">
-      <span class="num">${d}</span><div class="art" style="${s !== "later" && cv.img ? `background-image:url(${cv.img})` : ""}"></div>${mark ? `<span class="mark">${mark}</span>` : ""}</button>`;
+    const mark = done ? "✓" : today && s !== "open" ? "Tonight" : s === "tomorrow" ? "🔒" : "";
+    html += `<button type="button" class="mcell story ${s}${done ? " done" : ""}${s !== "open" ? " locked" : ""}${today ? " today" : ""}${n.week === 1 ? " v1" : ""}" data-n="${n.n}" aria-label="${dayName(ds)} ${d}: ${title}${done ? ", read" : ""}">
+      <div class="art" style="${s !== "later" && cv.img ? `background-image:url(${cv.img})` : ""}"></div><span class="num">${d}</span>${mark ? `<span class="mark">${mark}</span>` : ""}${s !== "later" ? `<span class="cap">${title}</span>` : ""}</button>`;
   }
   const tail = (7 - ((first.getUTCDay() + days) % 7)) % 7;
-  for (let k = 0; k < tail; k++) html += `<div class="mcell out" aria-hidden="true"></div>`;
+  const trail = weekHasStory(`${m}-${String(days).padStart(2, "0")}`) ? "" : " short";
+  for (let k = 0; k < tail; k++) html += `<div class="mcell out${trail}" aria-hidden="true"></div>`;
   $("monthGrid").innerHTML = html;
   $("monthList").innerHTML = inMonth.map(cardHTML).join("");
 }
