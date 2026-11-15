@@ -2,7 +2,7 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "U4GXuzxR6ojendaMI1p+WrZt0Sjh6jnE1m9iac4gkBGTtjnFl2aEGp8=",
+ "check": "RbweWCDFqDtUlgun13iK5seFn2vmEqodY5DpG7FxCoUSOsQqPcEWk+0=",
  "tz": "America/New_York",
  "unlockHour": 21,
  "preview": true,
@@ -53,7 +53,7 @@
    "n": 7,
    "date": "2026-11-17",
    "pages": 24,
-   "images": 0,
+   "images": 24,
    "week": 2
   },
   {
