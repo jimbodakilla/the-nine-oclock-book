@@ -121,7 +121,16 @@ header.top h1{font-size:clamp(26px,4vw,52px);line-height:1.08}
 .page.noimg{background-image:radial-gradient(1px 1px at 20% 70%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 70% 80%,#fff5 50%,transparent 51%),radial-gradient(ellipse at 50% 120%,#25356e,#10182F 70%)}
 .shade{position:absolute;left:0;right:0;top:0;height:62%;background:linear-gradient(#0e1530e6 0%,#0e1530db 50%,#0e153000 100%);pointer-events:none}
 .page.real .shade{background:linear-gradient(#F6EEDCf2 0%,#F6EEDCe8 58%,#F6EEDC00 100%);height:72%}
-.txt{position:absolute;left:7.4cqw;right:7.4cqw;top:7.6cqw;font-family:Alegreya,serif;font-size:2.78cqw;line-height:1.25;color:#fff}
+.txt{position:absolute;left:7.4cqw;right:7.4cqw;top:7.6cqw;font-family:Alegreya,serif;font-size:calc(var(--fs,12) / 432 * 100cqw);line-height:1.25;color:#fff}
+.page.warm .shade{background:linear-gradient(#EFE3C8e6 0%,#EFE3C8e0 50%,#EFE3C800 100%)}
+.page.warm .txt{color:var(--ink)}
+.page.warm .txt h4{color:#8A4B0F}
+.page.warm .pnum{color:var(--ink);border-color:#1d2440aa}
+.txt .snd{font-family:Fraunces,serif;font-style:italic;font-weight:600;color:var(--gold);font-size:1.12em}
+.page.warm .txt .snd,.page.real .txt .snd{color:#8A4B0F}
+.txt .dc{font-family:Fraunces,serif;font-style:italic;font-weight:600;color:var(--gold);font-size:2.2em;line-height:1}
+.page.warm .txt .dc{color:#8A4B0F}
+.page.quiet .txt p{margin-bottom:1.6cqw}
 .txt p{margin:0 0 1.16cqw}
 .txt h4{font-family:Fraunces,serif;font-style:italic;font-weight:600;color:var(--gold);font-size:4.4cqw;line-height:1.2;margin:0 0 1.9cqw}
 .page.real .txt{color:var(--ink);font-size:2.66cqw}
@@ -414,7 +423,8 @@ function draw() {
   const pages = R.story.pages, el = $("page");
   if (R.i >= pages.length) return drawEnd();
   const p = pages[R.i];
-  el.className = "page " + p.kind + (p.img ? "" : " noimg");
+  el.className = "page " + p.kind + (p.img ? "" : " noimg") + (p.tpl && p.kind === "story" ? " " + p.tpl : "");
+  el.style.setProperty("--fs", p.fs || 12);
   el.style.backgroundImage = p.img ? `url(${p.img})` : "";
   let inner = "";
   if (p.kind === "flat") {
