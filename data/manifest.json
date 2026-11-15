@@ -2,10 +2,10 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "V1678oS60IZzlwAD0+ZCZbJOYZg3zNqeG7D71UkdcrtC5KlNBHxFdhs=",
+ "check": "gcCCn+zCrvD+RQTyAQhMPu3zwMTw4dpntU7Z7LKAUCNjeeMaYVIbm8A=",
  "tz": "America/New_York",
  "unlockHour": 21,
- "preview": true,
+ "preview": false,
  "nights": [
   {
    "n": 1,
