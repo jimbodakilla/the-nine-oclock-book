@@ -2,51 +2,87 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "C2uqop33sSZt/BCrw1tnebPULYM4eA3h7WBJxq4BvuSaEoBSYGuzblY=",
+ "check": "UoT4voKwsb11RyPZverrrymtH9tcYS98/cqbLtv065CdJZSEn/q4IuI=",
  "tz": "America/New_York",
  "unlockHour": 21,
+ "preview": true,
  "nights": [
   {
-   "n": 5,
-   "date": "2026-11-16",
+   "n": 1,
+   "date": "2026-11-11",
+   "pages": 25,
+   "images": 25,
+   "week": 1
+  },
+  {
+   "n": 2,
+   "date": "2026-11-12",
    "pages": 27,
-   "images": 27
+   "images": 27,
+   "week": 1
+  },
+  {
+   "n": 3,
+   "date": "2026-11-13",
+   "pages": 13,
+   "images": 13,
+   "week": 1
+  },
+  {
+   "n": 4,
+   "date": "2026-11-14",
+   "pages": 15,
+   "images": 15,
+   "week": 1
+  },
+  {
+   "n": 5,
+   "date": "2026-11-15",
+   "pages": 27,
+   "images": 27,
+   "week": 2
   },
   {
    "n": 6,
-   "date": "2026-11-17",
+   "date": "2026-11-16",
    "pages": 22,
-   "images": 0
+   "images": 0,
+   "week": 2
   },
   {
    "n": 7,
-   "date": "2026-11-18",
+   "date": "2026-11-17",
    "pages": 24,
-   "images": 0
+   "images": 0,
+   "week": 2
   },
   {
    "n": 8,
-   "date": "2026-11-19",
+   "date": "2026-11-18",
    "pages": 23,
-   "images": 0
+   "images": 0,
+   "week": 2
   },
   {
    "n": 9,
-   "date": "2026-11-20",
+   "date": "2026-11-19",
    "pages": 22,
-   "images": 0
+   "images": 0,
+   "week": 2
   },
   {
    "n": 10,
-   "date": "2026-11-21",
+   "date": "2026-11-20",
    "pages": 22,
-   "images": 0
+   "images": 0,
+   "week": 2
   },
   {
    "n": 11,
-   "date": "2026-11-22",
+   "date": "2026-11-21",
    "pages": 21,
-   "images": 0
+   "images": 0,
+   "week": 2
   }
  ]
 }

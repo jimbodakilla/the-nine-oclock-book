@@ -35,7 +35,7 @@ body{background:var(--navy);color:var(--text);font-family:Alegreya,Georgia,serif
 button{font:inherit;color:inherit;cursor:pointer}
 .hidden{display:none!important}
 h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-style:italic;color:var(--gold);margin:0}
-.wrap{max-width:980px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 48px}
+.wrap{max-width:1440px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) clamp(16px,4vw,64px) 56px}
 
 /* ---------- lock ---------- */
 #lock{min-height:100vh;display:grid;place-items:center;padding:24px}
@@ -57,7 +57,7 @@ h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-style:italic;co
 /* ---------- home ---------- */
 header.top{display:flex;align-items:center;gap:18px;margin:8px 0 22px}
 header.top .t small{display:block;font-family:Fraunces,serif;font-style:normal;font-size:13px;letter-spacing:.14em;color:var(--gold);opacity:.85}
-header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
+header.top h1{font-size:clamp(26px,4vw,52px);line-height:1.08}
 .book{flex:none;width:86px;height:112px;border-radius:4px 10px 10px 4px;position:relative;background:linear-gradient(135deg,var(--leather),var(--leather2));box-shadow:0 10px 28px #0008}
 .book:before{content:"";position:absolute;inset:9px 9px 9px 14px;border:1px solid #f5c76b77;border-radius:4px}
 .stitches{position:absolute;left:16px;right:12px;top:50%;height:2px;transform:translateY(-50%);display:flex;justify-content:space-between}
@@ -87,6 +87,11 @@ header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
 .cell.tonightc{box-shadow:0 0 0 2px var(--gold),0 0 24px #f5c76b66}
 .cell.today .d{color:var(--gold)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:15px;margin-top:6px}
+.previewbar{margin:0 0 18px;padding:10px 16px;border-radius:12px;background:#f5c76b1f;border:1px dashed #f5c76b88;color:var(--gold);font-family:Fraunces,serif;font-size:15px}
+.week-label{font-family:Fraunces,serif;letter-spacing:.12em;font-size:13px;color:var(--muted);margin:18px 0 8px}
+@media (min-width:1100px){.dow,.grid{gap:14px}.cell .lbl{font-size:15px}}
+.page.flat .shade,.page.flat .pnum{display:none}
+.sndbtn.off{opacity:.55}
 
 /* ---------- modal (cover) ---------- */
 .overlay{position:fixed;inset:0;background:#05081acc;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:grid;place-items:center;padding:20px}
@@ -130,6 +135,12 @@ header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
 @media (prefers-reduced-motion:no-preference){.page{transition:opacity .25s}.fade{opacity:0}}
 .listview{display:none}
 @media (max-width:620px){
+  .wrap{padding-left:16px;padding-right:16px}
+  header.top{gap:12px}
+  .book{width:64px;height:84px}
+  .tonight{padding:14px}
+  .tonight .what h2{font-size:20px}
+  .count{font-size:22px}
   .calview{display:none}
   .listview{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .listview .cell .d{font-size:14px}
@@ -164,6 +175,7 @@ header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
       <div class="stitchnote" id="stitchNote"></div>
     </div>
   </header>
+  <div class="previewbar hidden" id="previewBar">👀 Preview mode: every night is unlocked so you can look around. (The 9:00 pm locks come back when Dad says so.)</div>
   <section class="tonight" id="tonightCard"></section>
   <div id="months"></div>
   <div class="legend"><span>📖 Open: read any time</span><span>✨ Tonight</span><span>🔒 Tomorrow: cover only</span><span>❔ Later: it's a surprise</span></div>
@@ -181,7 +193,7 @@ header.top h1{font-size:clamp(26px,4.5vw,40px);line-height:1.1}
 
 <!-- READER -->
 <div id="reader" class="hidden">
-  <div class="rbar"><button class="chip" id="rClose" type="button">✕ Close</button><span class="chip" id="rPos"></span></div>
+  <div class="rbar"><button class="chip" id="rClose" type="button">✕ Close</button><span style="display:flex;gap:8px"><button class="chip sndbtn" id="rSnd" type="button" aria-label="Sounds on or off">🔊 Sounds</button><span class="chip" id="rPos"></span></span></div>
   <button class="navbtn prev" id="rPrev" type="button" aria-label="Previous page">‹</button>
   <div class="page" id="page"></div>
   <button class="navbtn next" id="rNext" type="button" aria-label="Next page">›</button>
@@ -229,6 +241,7 @@ function localToUTC(dateStr, hour, tz) {
 const ymd = (ts) => new Intl.DateTimeFormat("en-CA", { timeZone: M.tz }).format(new Date(ts));
 const addDays = (s, k) => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d + k)).toISOString().slice(0, 10); };
 function stateOf(night) {
+  if (M.preview) return "open";
   const t = now(), unlock = localToUTC(night.date, M.unlockHour, M.tz), today = ymd(t);
   if (t >= unlock) return "open";
   if (night.date === today) return "tonight";
@@ -262,7 +275,7 @@ $("lockform").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("err").textContent = "Opening the book…";
   try {
-    const k = await derive($("pw").value.trim().toLowerCase());
+    const k = await derive($("pw").value.trim());
     await decrypt(b64(M.check).buffer, k);
     KEY = k;
     const raw = new Uint8Array(await crypto.subtle.exportKey("raw", k));
@@ -288,14 +301,18 @@ function shortTitle(title) {
 }
 function render() {
   const st = M.nights.map((n) => ({ n, s: stateOf(n) }));
-  const open = st.filter((x) => x.s === "open").length;
-  $("stitches").innerHTML = M.nights.map((_, i) => `<i class="${i < open ? "on" : ""}"></i>`).join("");
-  $("stitchNote").textContent = `${open} of ${M.nights.length} gold stitches mended this week`;
+  const week = M.nights.filter((n) => n.week === 2);
+  const open = week.filter((n) => stateOf(n) === "open").length;
+  $("stitches").innerHTML = week.map((_, i) => `<i class="${i < open ? "on" : ""}"></i>`).join("");
+  $("stitchNote").textContent = `${open} of ${week.length} gold stitches mended this week`;
+  $("previewBar").classList.toggle("hidden", !M.preview);
   const first = M.nights[0].date, last = M.nights[M.nights.length - 1].date;
   $("weekLabel").textContent = "TIME TRAVEL WEEK";
   // tonight card
-  const tn = st.find((x) => x.s === "tonight") || st.find((x) => x.s === "tomorrow");
-  const lastOpen = [...st].reverse().find((x) => x.s === "open");
+  const todayStr = ymd(now());
+  const todays = st.find((x) => x.n.date === todayStr);
+  const tn = (todays && todays.s !== "open") ? todays : (todays ? null : st.find((x) => x.s === "tomorrow"));
+  const lastOpen = (todays && todays.s === "open") ? todays : [...st].reverse().find((x) => x.s === "open");
   const tc = $("tonightCard");
   if (tn) {
     const unlock = localToUTC(tn.n.date, M.unlockHour, M.tz);
@@ -304,7 +321,7 @@ function render() {
       <div class="count" data-unlock="${unlock}">${fmtCountdown(unlock - now())}</div>`;
     tc.onclick = () => showCover(tn.n);
   } else if (lastOpen) {
-    tc.innerHTML = `<div class="what"><small>TONIGHT'S STORY IS OPEN</small><h2>${(covers[lastOpen.n.n] || {}).title || ""}</h2></div><button class="btn" type="button">Read it ▸</button>`;
+    tc.innerHTML = `<div class="what"><small>TONIGHT'S STORY · NIGHT ${lastOpen.n.n}</small><h2>${(covers[lastOpen.n.n] || {}).title || ""}</h2></div><button class="btn" type="button">Read it ▸</button>`;
     tc.onclick = () => openReader(lastOpen.n);
   } else tc.classList.add("hidden");
   // only the weeks that contain story nights (Sunday → Saturday)
@@ -370,6 +387,7 @@ $("coverModal").addEventListener("click", (e) => { if (e.target.id === "coverMod
 let R = { story: null, i: 0 };
 async function openReader(night) {
   if (stateOf(night) !== "open") return showCover(night);
+  SFX.unlock();
   const key = `n${String(night.n).padStart(2, "0")}-story.bin`;
   $("reader").classList.remove("hidden");
   $("page").innerHTML = `<div class="txt" style="text-align:center;top:40%">Opening the book…</div>`;
@@ -386,6 +404,14 @@ function draw() {
   el.className = "page " + p.kind + (p.img ? "" : " noimg");
   el.style.backgroundImage = p.img ? `url(${p.img})` : "";
   let inner = "";
+  if (p.kind === "flat") {
+    el.innerHTML = "";
+    $("rPos").textContent = `${R.i + 1} / ${pages.length}`;
+    $("rPrev").style.visibility = R.i === 0 ? "hidden" : "visible";
+    SFX.set(p.amb);
+    return;
+  }
+  SFX.set(p.amb);
   if (p.kind === "title") {
     const [lab, big, sub] = p.paras.map((x) => x.h);
     inner = `<div class="txt"><div class="lab">${lab || ""}</div><div class="big">${big || ""}</div><div class="div">— ✦ —</div><div class="sub">${sub || ""}</div></div>`;
@@ -400,6 +426,7 @@ function draw() {
 }
 function drawEnd() {
   const OLDER = (META && META.older) || "Big brother", YOUNGER = (META && META.younger) || "Little brother";
+  SFX.set(["night"]);
   const n = R.story.n, saved = JSON.parse(localStorage.getItem(STORE + "fb" + n) || "{}");
   const el = $("page"); el.className = "page noimg"; el.style.backgroundImage = "";
   el.innerHTML = `<div class="endcard"><h3>The End</h3>
@@ -420,7 +447,8 @@ function drawEnd() {
 }
 const go = (d) => { if (!R.story) return; const max = R.story.pages.length; R.i = Math.max(0, Math.min(max, R.i + d)); draw(); };
 $("rNext").onclick = () => go(1); $("rPrev").onclick = () => go(-1);
-$("rClose").onclick = () => { $("reader").classList.add("hidden"); render(); };
+$("rClose").onclick = () => { SFX.stop(); $("reader").classList.add("hidden"); render(); };
+$("rSnd").onclick = () => { SFX.toggle(); };
 document.addEventListener("keydown", (e) => {
   if ($("reader").classList.contains("hidden")) return;
   if (e.key === "ArrowRight" || e.key === " ") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") $("rClose").onclick();
@@ -433,6 +461,85 @@ $("page").addEventListener("pointerup", (e) => {
   if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
   else { const r = $("page").getBoundingClientRect(); go(e.clientX - r.left > r.width / 2 ? 1 : -1); }
 });
+
+
+/* ---------- SOUNDSCAPES: generated live with Web Audio (no audio files, no outside services) ---------- */
+const SFX = (() => {
+  let ctx = null, master = null, noiseBuf = null, current = { key: "", layers: [] };
+  let on = localStorage.getItem(STORE + "sound") !== "off";
+  const VOL = 0.32;
+  function unlock() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = on ? VOL : 0; master.connect(ctx.destination);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); let b = 0;
+      for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = w * 0.6 + b * 3; }
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    $("rSnd").classList.toggle("off", !on); $("rSnd").textContent = on ? "🔊 Sounds" : "🔇 Sounds";
+  }
+  const noise = () => { const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; s.start(); return s; };
+  const filt = (type, f, q = 0.7) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+  const gain = (v) => { const g = ctx.createGain(); g.gain.value = v; return g; };
+  const lfo = (rate, depth, target) => { const o = ctx.createOscillator(), g = gain(depth); o.frequency.value = rate; o.connect(g).connect(target); o.start(); return o; };
+  const ping = (out, f, dur, vol, type = "sine", slideTo) => {
+    const o = ctx.createOscillator(), g = gain(0), t0 = ctx.currentTime; o.type = type; o.frequency.setValueAtTime(f, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(out); o.start(t0); o.stop(t0 + dur + 0.05);
+  };
+  const burst = (out, type, f, dur, vol) => {
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf; const fl = filt(type, f), g = gain(0), t0 = ctx.currentTime;
+    g.gain.linearRampToValueAtTime(vol, t0 + dur * 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    s.connect(fl).connect(g).connect(out); s.start(t0, Math.random() * 2); s.stop(t0 + dur + 0.1);
+  };
+  const every = (min, max, fn, timers) => { const go = () => { fn(); timers.push(setTimeout(go, min + Math.random() * (max - min))); }; timers.push(setTimeout(go, Math.random() * min)); };
+  // each preset: (out, timers) => [sources to stop]
+  const P = {
+    room: (o) => { const n = noise(); n.connect(filt("lowpass", 160)).connect(gain(0.22)).connect(o); return [n]; },
+    night: (o, T) => { const n = noise(); n.connect(filt("lowpass", 220)).connect(gain(0.12)).connect(o);
+      every(900, 2400, () => { for (let k = 0; k < 3; k++) setTimeout(() => ping(o, 4300 + Math.random() * 300, 0.05, 0.035), k * 70); }, T); return [n]; },
+    ocean: (o) => { const n = noise(), f = filt("lowpass", 520), g = gain(0.35); n.connect(f).connect(g).connect(o);
+      const l1 = lfo(0.11, 0.3, g.gain); const n2 = noise(), f2 = filt("bandpass", 1400, 0.4), g2 = gain(0.08); n2.connect(f2).connect(g2).connect(o); const l2 = lfo(0.08, 0.07, g2.gain); return [n, n2, l1, l2]; },
+    wind: (o) => { const n = noise(), f = filt("bandpass", 420, 0.6), g = gain(0.28); n.connect(f).connect(g).connect(o); const l = lfo(0.05, 260, f.frequency), l2 = lfo(0.09, 0.12, g.gain); return [n, l, l2]; },
+    rain: (o, T) => { const n = noise(), f = filt("highpass", 1800), g = gain(0.12); n.connect(f).connect(filt("lowpass", 7000)).connect(g).connect(o);
+      every(60, 260, () => ping(o, 2500 + Math.random() * 2500, 0.03, 0.02, "triangle"), T); return [n]; },
+    storm: (o, T) => { const r = P.rain(o, T); every(7000, 14000, () => burst(o, "lowpass", 110, 3.5, 0.7), T); return r; },
+    river: (o) => { const n = noise(), f = filt("bandpass", 950, 0.9), g = gain(0.2); n.connect(f).connect(g).connect(o); const l = lfo(3.2, 0.05, g.gain), l2 = lfo(0.3, 150, f.frequency); return [n, l, l2]; },
+    forest: (o, T) => { const w = P.wind(o, T); every(1200, 3200, () => { const b = 1900 + Math.random() * 1500; ping(o, b, 0.12, 0.05, "sine", b * 1.5); setTimeout(() => ping(o, b * 1.2, 0.1, 0.04, "sine", b * 0.9), 140); }, T); return w; },
+    city: (o, T) => { const n = noise(), f = filt("lowpass", 260), g = gain(0.3); n.connect(f).connect(g).connect(o); const l = lfo(0.07, 0.1, g.gain); every(9000, 16000, () => burst(o, "lowpass", 400, 2.2, 0.25), T); return [n, l]; },
+    lab: (o, T) => { const r = P.room(o); every(1000, 1000, () => burst(o, "highpass", 3000, 0.04, 0.12), T); every(6000, 11000, () => ping(o, 2600 + Math.random() * 900, 0.6, 0.03), T); return r; },
+    control: (o, T) => { const n = noise(), f = filt("bandpass", 520, 0.5), g = gain(0.16); n.connect(f).connect(g).connect(o); const l = lfo(0.6, 0.05, g.gain);
+      every(3500, 8000, () => ping(o, 880, 0.12, 0.04, "square"), T); return [n, l]; },
+    crowd: (o, T) => { const c = P.control(o, T); every(2500, 5000, () => burst(o, "bandpass", 1100, 1.6, 0.35), T); return c; },
+    space: (o) => { const a = ctx.createOscillator(), b = ctx.createOscillator(), f = filt("lowpass", 400), g = gain(0.09); a.frequency.value = 55; b.frequency.value = 82.6;
+      a.connect(f); b.connect(f); f.connect(g).connect(o); a.start(); b.start(); const l = lfo(0.03, 1.5, b.frequency); return [a, b, l]; },
+    rocket: (o) => { const n = noise(), f = filt("lowpass", 140), g = gain(0.0); n.connect(f).connect(g).connect(o); g.gain.linearRampToValueAtTime(0.75, ctx.currentTime + 4); const l = lfo(7, 0.12, g.gain); return [n, l]; },
+    engine: (o) => { const s = ctx.createOscillator(), f = filt("lowpass", 520), g = gain(0.08); s.type = "sawtooth"; s.frequency.value = 92; s.connect(f).connect(g).connect(o); s.start();
+      const l = lfo(16, 0.05, g.gain), l2 = lfo(0.2, 5, s.frequency); const w = P.wind(o); return [s, l, l2, ...w]; },
+    beep: (o, T) => { const n = noise(); n.connect(filt("bandpass", 2400, 0.8)).connect(gain(0.03)).connect(o); every(650, 650, () => ping(o, 1000, 0.28, 0.06, "sine"), T); return [n]; },
+    magic: (o, T) => { const notes = [1046, 1175, 1318, 1568, 1760, 2093]; every(500, 1500, () => ping(o, notes[Math.floor(Math.random() * notes.length)], 1.6, 0.045), T); return []; },
+  };
+  function stopLayer(L, fade = 1.2) {
+    const t0 = ctx.currentTime; L.out.gain.cancelScheduledValues(t0); L.out.gain.setValueAtTime(L.out.gain.value, t0); L.out.gain.linearRampToValueAtTime(0, t0 + fade);
+    L.timers.forEach(clearTimeout);
+    setTimeout(() => { L.src.forEach((s) => { try { s.stop(); } catch (e) {} }); L.out.disconnect(); }, fade * 1000 + 100);
+  }
+  function set(names) {
+    if (!ctx || !names) return;
+    const key = names.join("+"); if (key === current.key) return;
+    current.layers.forEach((L) => stopLayer(L));
+    current = { key, layers: names.filter((n) => P[n]).map((n) => {
+      const out = gain(0), timers = []; out.connect(master);
+      const src = P[n](out, timers); out.gain.linearRampToValueAtTime(n === "night" ? 0.6 : 1, ctx.currentTime + 1.5);
+      return { out, timers, src };
+    }) };
+  }
+  function stop() { if (!ctx) return; current.layers.forEach((L) => stopLayer(L, 0.8)); current = { key: "", layers: [] }; }
+  function toggle() { on = !on; localStorage.setItem(STORE + "sound", on ? "on" : "off"); unlock(); master.gain.linearRampToValueAtTime(on ? VOL : 0, ctx.currentTime + 0.4); }
+  return { unlock, set, stop, toggle };
+})();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 boot();
