@@ -338,7 +338,7 @@ h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-style:italic;co
 
 <!-- READER -->
 <div id="reader" class="hidden">
-  <div class="rbar"><button class="chip" id="rClose" type="button">✕ Close</button><span style="display:flex;gap:8px"><button class="chip sndbtn" id="rSnd" type="button" aria-label="Sounds on or off">🔊 Sounds</button><span class="chip" id="rPos"></span></span></div>
+  <div class="rbar"><button class="chip" id="rClose" type="button">✕ Close</button><span style="display:flex;gap:8px"><button class="chip sndbtn" id="rSnd" type="button" aria-label="Sound volume: loud, medium, soft or off">🔊 Sounds</button><span class="chip" id="rPos"></span></span></div>
   <button class="navbtn prev" id="rPrev" type="button" aria-label="Previous page">‹</button>
   <div class="page" id="page"></div>
   <button class="navbtn next" id="rNext" type="button" aria-label="Next page">›</button>
@@ -655,6 +655,7 @@ let R = { story: null, i: 0 };
 async function openReader(night) {
   if (stateOf(night) !== "open") return showCover(night);
   SFX.unlock();
+  SFX.stop();
   const key = `n${String(night.n).padStart(2, "0")}-story.bin`;
   R = { story: null, i: 0 };            // forget the previous story completely
   $("rPos").textContent = "…";
@@ -662,6 +663,7 @@ async function openReader(night) {
   $("page").innerHTML = `<div class="txt" style="text-align:center;top:40%">Opening the book…</div>`;
   if (!stories[night.n]) stories[night.n] = await fetchBin(key);
   R = { story: stories[night.n], i: 0 };   // a story ALWAYS opens on its first page
+  SFX.load(R.story);
   draw();
 }
 function draw() {
@@ -676,10 +678,10 @@ function draw() {
     el.innerHTML = "";
     $("rPos").textContent = `${R.i + 1} / ${pages.length}`;
     $("rPrev").style.visibility = R.i === 0 ? "hidden" : "visible";
-    SFX.set(p.amb); SFX.fx(p.fx);
+    SFX.page(p.snd);
     return;
   }
-  SFX.set(p.amb); SFX.fx(p.fx);
+  SFX.page(p.snd);
   if (p.kind === "title") {
     const [lab, big, sub] = p.paras.map((x) => x.h);
     inner = `<div class="txt"><div class="lab">${lab || ""}</div><div class="big">${big || ""}</div><div class="div">— ✦ —</div><div class="sub">${sub || ""}</div></div>`;
@@ -694,7 +696,7 @@ function draw() {
 }
 function drawEnd() {
   const OLDER = (META && META.older) || "Big brother", YOUNGER = (META && META.younger) || "Little brother";
-  SFX.set(["night"]);
+  SFX.page({ place: "bedroom_night", life: null, m: [] });
   const n = R.story.n, saved = JSON.parse(localStorage.getItem(STORE + "fb" + n) || "{}");
   const fresh = markRead(n), night = M.nights.find((x) => x.n === n);
   const wk = M.nights.filter((x) => x.week === night.week), rs = readSet(), got = wk.filter((x) => rs.has(x.n)).length;
@@ -720,7 +722,7 @@ function drawEnd() {
 const go = (d) => { if (!R.story) return; const max = R.story.pages.length; R.i = Math.max(0, Math.min(max, R.i + d)); draw(); };
 $("rNext").onclick = () => go(1); $("rPrev").onclick = () => go(-1);
 $("rClose").onclick = () => { SFX.stop(); $("reader").classList.add("hidden"); render(); };
-$("rSnd").onclick = () => { SFX.toggle(); };
+$("rSnd").onclick = () => { SFX.cycle(); };
 document.addEventListener("keydown", (e) => {
   if ($("reader").classList.contains("hidden")) return;
   if (e.key === "ArrowRight" || e.key === " ") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") $("rClose").onclick();
@@ -737,106 +739,102 @@ $("page").addEventListener("pointerup", (e) => {
 
 /* ---------- SOUNDSCAPES: generated live with Web Audio (no audio files, no outside services) ---------- */
 const SFX = (() => {
-  let ctx = null, master = null, noiseBuf = null, current = { key: "", layers: [] };
-  let on = localStorage.getItem(STORE + "sound") !== "off";
-  const VOL = 0.32;
+  /* Real recorded sounds (BBC archive + NASA), decrypted per night; magic stays generated.
+     Each page: place (loop) + life (loop) + moments timed to when Dad reads those words. */
+  let ctx = null, master = null, noiseBuf = null;
+  const LEVELS = [1, 0.6, 0.3, 0], ICONS = ["🔊", "🔉", "🔈", "🔇"], BASE = 0.9;
+  let lvl = Number(localStorage.getItem(STORE + "soundlvl") || (localStorage.getItem(STORE + "sound") === "off" ? 3 : 0)) || 0;
+  const buffers = {}, loading = {}; let META = {}, current = { place: null, life: null }, timers = [], token = 0;
+  function label() { $("rSnd").textContent = `${ICONS[lvl]} Sounds`; $("rSnd").classList.toggle("off", lvl === 3); }
   function unlock() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-      ctx = new AC(); master = ctx.createGain(); master.gain.value = on ? VOL : 0; master.connect(ctx.destination);
-      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
-      const d = noiseBuf.getChannelData(0); let b = 0;
-      for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = w * 0.6 + b * 3; }
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = BASE * LEVELS[lvl]; master.connect(ctx.destination);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     }
     if (ctx.state === "suspended") ctx.resume();
-    $("rSnd").classList.toggle("off", !on); $("rSnd").textContent = on ? "🔊 Sounds" : "🔇 Sounds";
+    label();
   }
-  const noise = () => { const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; s.start(); return s; };
-  const filt = (type, f, q = 0.7) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
   const gain = (v) => { const g = ctx.createGain(); g.gain.value = v; return g; };
-  const lfo = (rate, depth, target) => { const o = ctx.createOscillator(), g = gain(depth); o.frequency.value = rate; o.connect(g).connect(target); o.start(); return o; };
-  const ping = (out, f, dur, vol, type = "sine", slideTo) => {
-    const o = ctx.createOscillator(), g = gain(0), t0 = ctx.currentTime; o.type = type; o.frequency.setValueAtTime(f, t0);
-    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
-    g.gain.linearRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g).connect(out); o.start(t0); o.stop(t0 + dur + 0.05);
-  };
-  const burst = (out, type, f, dur, vol) => {
-    const s = ctx.createBufferSource(); s.buffer = noiseBuf; const fl = filt(type, f), g = gain(0), t0 = ctx.currentTime;
-    g.gain.linearRampToValueAtTime(vol, t0 + dur * 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    s.connect(fl).connect(g).connect(out); s.start(t0, Math.random() * 2); s.stop(t0 + dur + 0.1);
-  };
-  const every = (min, max, fn, timers) => { const go = () => { fn(); timers.push(setTimeout(go, min + Math.random() * (max - min))); }; timers.push(setTimeout(go, Math.random() * min)); };
-  // each preset: (out, timers) => [sources to stop]
-  const P = {
-    room: (o) => { const n = noise(); n.connect(filt("lowpass", 160)).connect(gain(0.22)).connect(o); return [n]; },
-    night: (o, T) => { const n = noise(); n.connect(filt("lowpass", 220)).connect(gain(0.12)).connect(o);
-      every(900, 2400, () => { for (let k = 0; k < 3; k++) setTimeout(() => ping(o, 4300 + Math.random() * 300, 0.05, 0.035), k * 70); }, T); return [n]; },
-    ocean: (o) => { const n = noise(), f = filt("lowpass", 520), g = gain(0.35); n.connect(f).connect(g).connect(o);
-      const l1 = lfo(0.11, 0.3, g.gain); const n2 = noise(), f2 = filt("bandpass", 1400, 0.4), g2 = gain(0.08); n2.connect(f2).connect(g2).connect(o); const l2 = lfo(0.08, 0.07, g2.gain); return [n, n2, l1, l2]; },
-    wind: (o) => { const n = noise(), f = filt("bandpass", 420, 0.6), g = gain(0.28); n.connect(f).connect(g).connect(o); const l = lfo(0.05, 260, f.frequency), l2 = lfo(0.09, 0.12, g.gain); return [n, l, l2]; },
-    rain: (o, T) => { const n = noise(), f = filt("highpass", 1800), g = gain(0.12); n.connect(f).connect(filt("lowpass", 7000)).connect(g).connect(o);
-      every(60, 260, () => ping(o, 2500 + Math.random() * 2500, 0.03, 0.02, "triangle"), T); return [n]; },
-    storm: (o, T) => { const r = P.rain(o, T); every(7000, 14000, () => burst(o, "lowpass", 110, 3.5, 0.7), T); return r; },
-    river: (o) => { const n = noise(), f = filt("bandpass", 950, 0.9), g = gain(0.2); n.connect(f).connect(g).connect(o); const l = lfo(3.2, 0.05, g.gain), l2 = lfo(0.3, 150, f.frequency); return [n, l, l2]; },
-    forest: (o, T) => { const w = P.wind(o, T); every(1200, 3200, () => { const b = 1900 + Math.random() * 1500; ping(o, b, 0.12, 0.05, "sine", b * 1.5); setTimeout(() => ping(o, b * 1.2, 0.1, 0.04, "sine", b * 0.9), 140); }, T); return w; },
-    city: (o, T) => { const n = noise(), f = filt("lowpass", 260), g = gain(0.3); n.connect(f).connect(g).connect(o); const l = lfo(0.07, 0.1, g.gain); every(9000, 16000, () => burst(o, "lowpass", 400, 2.2, 0.25), T); return [n, l]; },
-    lab: (o, T) => { const r = P.room(o); every(1000, 1000, () => burst(o, "highpass", 3000, 0.04, 0.12), T); every(6000, 11000, () => ping(o, 2600 + Math.random() * 900, 0.6, 0.03), T); return r; },
-    control: (o, T) => { const n = noise(), f = filt("bandpass", 520, 0.5), g = gain(0.16); n.connect(f).connect(g).connect(o); const l = lfo(0.6, 0.05, g.gain);
-      every(3500, 8000, () => ping(o, 880, 0.12, 0.04, "square"), T); return [n, l]; },
-    crowd: (o, T) => { const c = P.control(o, T); every(2500, 5000, () => burst(o, "bandpass", 1100, 1.6, 0.35), T); return c; },
-    space: (o) => { const a = ctx.createOscillator(), b = ctx.createOscillator(), f = filt("lowpass", 400), g = gain(0.09); a.frequency.value = 55; b.frequency.value = 82.6;
-      a.connect(f); b.connect(f); f.connect(g).connect(o); a.start(); b.start(); const l = lfo(0.03, 1.5, b.frequency); return [a, b, l]; },
-    rocket: (o) => { const n = noise(), f = filt("lowpass", 140), g = gain(0.0); n.connect(f).connect(g).connect(o); g.gain.linearRampToValueAtTime(0.75, ctx.currentTime + 4); const l = lfo(7, 0.12, g.gain); return [n, l]; },
-    engine: (o) => { const s = ctx.createOscillator(), f = filt("lowpass", 520), g = gain(0.08); s.type = "sawtooth"; s.frequency.value = 92; s.connect(f).connect(g).connect(o); s.start();
-      const l = lfo(16, 0.05, g.gain), l2 = lfo(0.2, 5, s.frequency); const w = P.wind(o); return [s, l, l2, ...w]; },
-    beep: (o, T) => { const n = noise(); n.connect(filt("bandpass", 2400, 0.8)).connect(gain(0.03)).connect(o); every(650, 650, () => ping(o, 1000, 0.28, 0.06, "sine"), T); return [n]; },
-    magic: (o, T) => { const notes = [1046, 1175, 1318, 1568, 1760, 2093]; every(500, 1500, () => ping(o, notes[Math.floor(Math.random() * notes.length)], 1.6, 0.045), T); return []; },
-  };
-  // one-time effects (played once when a page opens)
-  const FX = {
+  const filt = (type, f, q = 0.7) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+  const ping = (out, f, dur, vol) => { const o = ctx.createOscillator(), g = gain(0), t0 = ctx.currentTime; o.frequency.value = f;
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g).connect(out); o.start(t0); o.stop(t0 + dur + 0.05); };
+  /* generated magic (no real-world recording exists for magic) */
+  const SYN = {
+    chime: (o) => [1046, 1318, 1568, 2093].forEach((f, k) => setTimeout(() => ping(o, f, 1.8, 0.07), k * 150)),
     whoosh: (o) => { const s = ctx.createBufferSource(); s.buffer = noiseBuf; const f = filt("bandpass", 300, 1.2), g = gain(0), t0 = ctx.currentTime;
-      f.frequency.exponentialRampToValueAtTime(3200, t0 + 0.9); g.gain.linearRampToValueAtTime(0.5, t0 + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
-      s.connect(f).connect(g).connect(o); s.start(t0, Math.random()); s.stop(t0 + 1.2); },
-    crack: (o) => { burst(o, "highpass", 1800, 0.18, 0.9); burst(o, "lowpass", 160, 0.5, 0.7); setTimeout(() => burst(o, "highpass", 2500, 0.12, 0.5), 120); },
-    splash: (o) => { burst(o, "bandpass", 700, 0.7, 0.9); setTimeout(() => burst(o, "highpass", 3000, 0.9, 0.35), 120); },
-    cheer: (o) => { burst(o, "bandpass", 1100, 2.6, 0.7); for (let k = 0; k < 14; k++) setTimeout(() => burst(o, "highpass", 2200, 0.05, 0.4), 200 + Math.random() * 2000); },
-    thunder: (o) => { burst(o, "lowpass", 110, 4, 0.95); setTimeout(() => burst(o, "lowpass", 70, 3, 0.6), 600); },
-    chime: (o) => { [1046, 1318, 1568, 2093].forEach((f, k) => setTimeout(() => ping(o, f, 1.8, 0.07), k * 150)); },
-    roar: (o) => { const s = ctx.createOscillator(), f = filt("lowpass", 320), g = gain(0), t0 = ctx.currentTime; s.type = "sawtooth";
-      s.frequency.setValueAtTime(90, t0); s.frequency.exponentialRampToValueAtTime(55, t0 + 1.8); g.gain.linearRampToValueAtTime(0.18, t0 + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.9);
-      s.connect(f).connect(g).connect(o); s.start(t0); s.stop(t0 + 2); burst(o, "lowpass", 260, 1.8, 0.35); },
-    bell: (o) => { ping(o, 1320, 1.6, 0.08); ping(o, 1980, 1.2, 0.04); },
-    click: (o) => { burst(o, "highpass", 3500, 0.05, 0.6); },
-    beeps: (o) => { for (let k = 0; k < 3; k++) setTimeout(() => ping(o, 1000, 0.28, 0.07), k * 620); },
-    alarm: (o) => { for (let k = 0; k < 4; k++) setTimeout(() => ping(o, k % 2 ? 660 : 880, 0.18, 0.05, "square"), k * 260); },
-    zap: (o) => { ping(o, 1400, 0.35, 0.08, "sawtooth", 180); burst(o, "highpass", 2500, 0.3, 0.4); },
-    rumble: (o) => { burst(o, "lowpass", 90, 3.2, 0.8); },
+      f.frequency.exponentialRampToValueAtTime(3200, t0 + 0.9); g.gain.linearRampToValueAtTime(0.35, t0 + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+      s.connect(f).connect(g).connect(o); s.start(t0); s.stop(t0 + 1.2); },
+    zap: (o) => { const s = ctx.createOscillator(), g = gain(0), t0 = ctx.currentTime; s.type = "sawtooth"; s.frequency.setValueAtTime(1400, t0); s.frequency.exponentialRampToValueAtTime(180, t0 + 0.35);
+      g.gain.linearRampToValueAtTime(0.06, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35); s.connect(g).connect(o); s.start(t0); s.stop(t0 + 0.4); },
   };
-  function fx(names) {
-    if (!ctx || !names || !on) return;
-    const out = gain(0.9); out.connect(master);
-    names.forEach((n, k) => FX[n] && setTimeout(() => FX[n](out), 350 + k * 400));
-    setTimeout(() => out.disconnect(), 7000);
+  function magicLoop(out) {            // gentle sparkle notes, used for magic travel
+    const notes = [1046, 1175, 1318, 1568, 1760, 2093], ids = [];
+    const go = () => { ping(out, notes[Math.floor(Math.random() * notes.length)], 1.6, 0.04); ids.push(setTimeout(go, 500 + Math.random() * 1000)); };
+    ids.push(setTimeout(go, 200));
+    return { stop: () => ids.forEach(clearTimeout) };
   }
-  function stopLayer(L, fade = 1.2) {
-    const t0 = ctx.currentTime; L.out.gain.cancelScheduledValues(t0); L.out.gain.setValueAtTime(L.out.gain.value, t0); L.out.gain.linearRampToValueAtTime(0, t0 + fade);
-    L.timers.forEach(clearTimeout);
-    setTimeout(() => { L.src.forEach((s) => { try { s.stop(); } catch (e) {} }); L.out.disconnect(); }, fade * 1000 + 100);
+  /* loading: each night's sounds are encrypted like the stories */
+  function load(story) {
+    META = story.sounds || {};
+    Object.entries(META).forEach(([id, m]) => { if (m.file) get(id); });
   }
-  function set(names) {
-    if (!ctx || !names) return;
-    const key = names.join("+"); if (key === current.key) return;
-    current.layers.forEach((L) => stopLayer(L));
-    current = { key, layers: names.filter((n) => P[n]).map((n) => {
-      const out = gain(0), timers = []; out.connect(master);
-      const src = P[n](out, timers); out.gain.linearRampToValueAtTime(n === "night" ? 0.6 : 1, ctx.currentTime + 1.5);
-      return { out, timers, src };
-    }) };
+  function get(id) {
+    const m = META[id]; if (!m || !m.file || !ctx) return Promise.resolve(null);
+    if (buffers[id]) return Promise.resolve(buffers[id]);
+    if (!loading[id]) loading[id] = fetch("data/" + m.file).then((r) => r.arrayBuffer()).then(async (buf) => {
+      const u = new Uint8Array(buf);
+      const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: u.slice(0, 12) }, KEY, u.slice(12));
+      return new Promise((ok, bad) => ctx.decodeAudioData(plain, ok, bad));
+    }).then((b) => (buffers[id] = b)).catch(() => { delete loading[id]; return null; });
+    return loading[id];
   }
-  function stop() { if (!ctx) return; current.layers.forEach((L) => stopLayer(L, 0.8)); current = { key: "", layers: [] }; }
-  function toggle() { on = !on; localStorage.setItem(STORE + "sound", on ? "on" : "off"); unlock(); master.gain.linearRampToValueAtTime(on ? VOL : 0, ctx.currentTime + 0.4); }
-  return { unlock, set, stop, toggle, fx };
+  function startLoop(id, vol) {
+    const m = META[id]; if (!m) return null;
+    const out = gain(0); out.connect(master);
+    const L = { id, out, stop: null };
+    if (m.synth) { const s = magicLoop(out); L.stop = s.stop; }
+    else {
+      get(id).then((b) => {
+        if (!b || L.dead) return;
+        const src = ctx.createBufferSource(); src.buffer = b; src.loop = true;
+        src.loopStart = m.loopStart || 0; src.loopEnd = m.loopEnd || b.duration;
+        src.connect(out); src.start(0, (m.loopStart || 0) + Math.random() * Math.max(0, (m.loopEnd || b.duration) - (m.loopStart || 0) - 1));
+        L.stop = () => { try { src.stop(); } catch (e) {} };
+      });
+    }
+    out.gain.linearRampToValueAtTime(vol * (m.vol || 1), ctx.currentTime + 1.8);
+    return L;
+  }
+  function endLoop(L, fade = 1.6) {
+    if (!L) return; L.dead = true; const t0 = ctx.currentTime;
+    L.out.gain.cancelScheduledValues(t0); L.out.gain.setValueAtTime(L.out.gain.value, t0); L.out.gain.linearRampToValueAtTime(0, t0 + fade);
+    setTimeout(() => { if (L.stop) L.stop(); L.out.disconnect(); }, fade * 1000 + 150);
+  }
+  function shot(id, vol) {
+    const m = META[id]; if (!m || !ctx) return;
+    const out = gain(vol * (m.vol || 1)); out.connect(master);
+    if (m.synth) { const k = m.synth.split(":")[1]; (SYN[k] || SYN.chime)(out); setTimeout(() => out.disconnect(), 4000); return; }
+    get(id).then((b) => { if (!b) return; const src = ctx.createBufferSource(); src.buffer = b; src.connect(out); src.start(); src.onended = () => out.disconnect(); });
+  }
+  const MOMENT_VOL = { soft: 0.6, normal: 1, big: 1.1 };
+  function page(snd) {
+    if (!ctx) return;
+    timers.forEach(clearTimeout); timers = []; const my = ++token;
+    snd = snd || { place: null, life: null, m: [] };
+    for (const slot of ["place", "life"]) {
+      const want = snd[slot] && META[snd[slot]] ? snd[slot] : null;
+      if (current[slot] && current[slot].id === want) continue;           // same place: keep it playing smoothly
+      endLoop(current[slot]); current[slot] = want ? startLoop(want, slot === "life" ? 0.9 : 1) : null;
+    }
+    (snd.m || []).forEach((m) => { if (META[m.id]) timers.push(setTimeout(() => { if (my === token) shot(m.id, MOMENT_VOL[snd.vol] || 1); }, (m.at || 0.6) * 1000)); });
+  }
+  function stop() { if (!ctx) return; timers.forEach(clearTimeout); timers = []; token++; endLoop(current.place, 0.8); endLoop(current.life, 0.8); current = { place: null, life: null }; }
+  function cycle() { unlock(); lvl = (lvl + 1) % LEVELS.length; localStorage.setItem(STORE + "soundlvl", lvl);
+    master.gain.linearRampToValueAtTime(BASE * LEVELS[lvl], ctx.currentTime + 0.3); label(); }
+  const state = () => ({ place: current.place && current.place.id, life: current.life && current.life.id, pending: timers.length, loaded: Object.keys(buffers).length, level: LEVELS[lvl] });
+  return { unlock, load, page, stop, cycle, state };
 })();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
