@@ -1,0 +1,185 @@
+{
+ "v": 1,
+ "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
+ "iter": 310000,
+ "check": "QPSdiKY4YrMDdhEd/N+2GrKHGQ8SpreFa5/xYPQoSfeMDzfhe1091CU=",
+ "tz": "America/New_York",
+ "unlockHour": 21,
+ "preview": false,
+ "nights": [
+  {
+   "n": 1,
+   "date": "2026-11-11",
+   "pages": 25,
+   "images": 25,
+   "week": 1,
+   "season": 0
+  },
+  {
+   "n": 2,
+   "date": "2026-11-12",
+   "pages": 27,
+   "images": 27,
+   "week": 1,
+   "season": 0
+  },
+  {
+   "n": 3,
+   "date": "2026-11-13",
+   "pages": 13,
+   "images": 13,
+   "week": 1,
+   "season": 0
+  },
+  {
+   "n": 4,
+   "date": "2026-11-14",
+   "pages": 15,
+   "images": 15,
+   "week": 1,
+   "season": 0
+  },
+  {
+   "n": 5,
+   "date": "2026-11-15",
+   "pages": 27,
+   "images": 27,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 6,
+   "date": "2026-11-16",
+   "pages": 22,
+   "images": 22,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 7,
+   "date": "2026-11-17",
+   "pages": 24,
+   "images": 24,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 8,
+   "date": "2026-11-18",
+   "pages": 23,
+   "images": 23,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 9,
+   "date": "2026-11-19",
+   "pages": 22,
+   "images": 22,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 10,
+   "date": "2026-11-20",
+   "pages": 22,
+   "images": 22,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 11,
+   "date": "2026-11-21",
+   "pages": 21,
+   "images": 21,
+   "week": 2,
+   "season": 1
+  },
+  {
+   "n": 12,
+   "date": "2026-11-22",
+   "pages": 29,
+   "images": 29,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 13,
+   "date": "2026-11-24",
+   "pages": 29,
+   "images": 29,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 14,
+   "date": "2026-11-25",
+   "pages": 29,
+   "images": 29,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 15,
+   "date": "2026-11-26",
+   "pages": 29,
+   "images": 0,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 16,
+   "date": "2026-11-27",
+   "pages": 28,
+   "images": 0,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 17,
+   "date": "2026-11-28",
+   "pages": 30,
+   "images": 0,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 18,
+   "date": "2026-11-29",
+   "pages": 29,
+   "images": 0,
+   "week": 3,
+   "season": 2
+  },
+  {
+   "n": 19,
+   "date": "2026-11-30",
+   "pages": 28,
+   "images": 0,
+   "week": 4,
+   "season": 2
+  },
+  {
+   "n": 20,
+   "date": "2026-12-01",
+   "pages": 28,
+   "images": 0,
+   "week": 4,
+   "season": 2
+  },
+  {
+   "n": 21,
+   "date": "2026-12-02",
+   "pages": 32,
+   "images": 0,
+   "week": 4,
+   "season": 2
+  }
+ ],
+ "weekNames": {
+  "1": "Volume One",
+  "2": "Time Travel",
+  "3": "The Family Pages",
+  "4": "The Family Pages"
+ }
+}
