@@ -2,7 +2,7 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "kkRx0I6wVZGcJXiXYfz7ev/lmLd/puaQgPwtwivx90uQpeZitZM/tx8=",
+ "check": "4ODUatKkhiOvgZa+jN1Z1VbhRHb7Wt8VWPYToMEnTQTxheXCf5WPcgQ=",
  "tz": "America/New_York",
  "unlockHour": 21,
  "preview": false,
@@ -131,7 +131,7 @@
    "n": 16,
    "date": "2026-11-27",
    "pages": 28,
-   "images": 0,
+   "images": 28,
    "week": 3,
    "season": 2
   },
