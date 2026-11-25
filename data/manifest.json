@@ -2,7 +2,7 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "5HlMO4czstsL0GLHWgPuioqJeRHR4oQqEiWulYapuBduyPmO/ELvdXc=",
+ "check": "jeQKJzCYY0lwGm5+c4ckSV4hJW7rEYxKgSljOylCFJmZ19Ll1VMYYCs=",
  "tz": "America/New_York",
  "unlockHour": 21,
  "preview": false,
@@ -154,26 +154,29 @@
   {
    "n": 19,
    "date": "2026-11-30",
-   "pages": 28,
+   "pages": 33,
    "images": 0,
    "week": 4,
-   "season": 2
+   "season": 2,
+   "genre": "Comedy"
   },
   {
    "n": 20,
    "date": "2026-12-01",
-   "pages": 28,
+   "pages": 36,
    "images": 0,
    "week": 4,
-   "season": 2
+   "season": 2,
+   "genre": "Suspense"
   },
   {
    "n": 21,
    "date": "2026-12-02",
-   "pages": 32,
+   "pages": 37,
    "images": 0,
    "week": 4,
-   "season": 2
+   "season": 2,
+   "genre": "Action"
   }
  ],
  "weekNames": {

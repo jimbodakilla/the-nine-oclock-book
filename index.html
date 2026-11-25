@@ -500,12 +500,13 @@ const NIGHT_WORD = new Proxy({}, { get: (_, k) => {
   if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? "-" + ones[n % 10] : "");
   return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + NIGHT_WORD[n % 100] : "");
 } });
+const epLabel = (n) => "EPISODE " + n.n + (n.genre ? " · " + n.genre.toUpperCase() : "");
 const longDate = (ds) => new Date(ds + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
 function artFor(night, extraClass = "") {
   const cv = covers[night.n] || {};
   if (cv.img && cv.baked) return `<div class="art ${extraClass}" style="background-image:url(${cv.img})">`;
-  if (cv.img) return `<div class="art ctitle ${extraClass}" style="background-image:url(${cv.img})"><div class="ct"><small>NIGHT ${NIGHT_WORD[night.n].toUpperCase()}</small><em>${shortTitle(cv.title || "")}</em></div>`;
-  return `<div class="art ${extraClass}"><div class="titlecard"><small>NIGHT ${NIGHT_WORD[night.n].toUpperCase()}</small><em>${cv.title ? shortTitle(cv.title) : ""}</em></div>`;
+  if (cv.img) return `<div class="art ctitle ${extraClass}" style="background-image:url(${cv.img})"><div class="ct"><small>${epLabel(night)}</small><em>${shortTitle(cv.title || "")}</em></div>`;
+  return `<div class="art ${extraClass}"><div class="titlecard"><small>${epLabel(night)}</small><em>${cv.title ? shortTitle(cv.title) : ""}</em></div>`;
 }
 function cardHTML(night) {
   const s = stateOf(night), cv = covers[night.n] || {}, today = night.date === ymd(now());
@@ -521,13 +522,13 @@ function cardHTML(night) {
   return `<button type="button" class="card ${s}${today ? " today" : ""}${done ? " done" : ""}" data-n="${night.n}" aria-label="${wdLong} ${d.getUTCDate()}: ${title}. ${status}">
       <span class="day"><span>${wd}</span><b>${d.getUTCDate()}</b></span>
       ${inner}<span class="chip">${chip}</span></div>
-      <span class="meta"><b>${title}</b><span>Night ${NIGHT_WORD[night.n]} · ${status}</span></span></button>`;
+      <span class="meta"><b>${title}</b><span>Episode ${night.n}${night.genre ? " · " + night.genre : ""} · ${status}</span></span></button>`;
 }
 function render() {
   const week = thisWeek(), earlier = M.nights.filter((n) => n.date < (week[0] || {}).date).slice(-EARLIER_ON_HOME);
   const season = thisSeason(), sw = markWord((anchorNight().season) || 0);
   const rs = readSet(), readCount = season.filter((n) => stateOf(n) === "open" && rs.has(n.n)).length;
-  $("stitches").innerHTML = season.map((n) => `<i class="${stateOf(n) === "open" && rs.has(n.n) ? "on" : ""}" title="Night ${NIGHT_WORD[n.n] || n.n}"></i>`).join("");
+  $("stitches").innerHTML = season.map((n) => `<i class="${stateOf(n) === "open" && rs.has(n.n) ? "on" : ""}" title="Episode ${n.n}"></i>`).join("");
   $("stitchNote").textContent = innerWidth < 560 ? `${readCount}/${season.length} ✦` : `${readCount} of ${season.length} gold ${sw}s`;
   $("previewPill").classList.toggle("hidden", !M.preview);
   if (META && META.series) $("series").textContent = META.series;
@@ -543,7 +544,7 @@ function render() {
     $("hero").innerHTML = `<div class="cover art" role="img" aria-label="Cover" style="background-image:url(${cv.img || ""})"></div>
       <div class="info"><div class="eyebrow">${isToday ? "Tonight" : "Next"} · ${longDate(hero.date)}</div>
         <h2>${cv.title ? shortTitle(cv.title).replace(/^the /, "The ") : ""}</h2>
-        <div class="sub">Night ${NIGHT_WORD[hero.n]} · ${cv.subtitle || ""}</div>
+        <div class="sub">Episode ${hero.n}${hero.genre ? " · " + hero.genre : ""}${cv.subtitle && !hero.genre ? " · " + cv.subtitle : ""}</div>
         <div class="actions">${action}</div></div>`;
     const cover = $("hero").querySelector(".cover");
     cover.onclick = () => (s === "open" ? openReader(hero) : showCover(hero));
@@ -601,7 +602,7 @@ function drawMonth(m, inMonth) {
     const short = !weekHasStory(ds) ? " short" : "";
     if (!n) { html += `<div class="mcell${short}"><span class="num">${d}</span></div>`; continue; }
     const s = stateOf(n), cv = covers[n.n] || {}, done = s === "open" && rs.has(n.n);
-    const title = s === "later" ? "A surprise" : shortTitle(cv.title || "Night " + n.n);
+    const title = s === "later" ? "A surprise" : shortTitle(cv.title || "Episode " + n.n);
     const mark = done ? "✓" : today && s !== "open" ? "Tonight" : s === "tomorrow" ? "🔒" : "";
     html += `<button type="button" class="mcell story ${s}${done ? " done" : ""}${s !== "open" ? " locked" : ""}${today ? " today" : ""}${n.week === 1 ? " v1" : ""}" data-n="${n.n}" aria-label="${dayName(ds)} ${d}: ${title}${done ? ", read" : ""}">
       <div class="art" style="${s !== "later" && cv.img ? `background-image:url(${cv.img})` : ""}"></div><span class="num">${d}</span>${mark ? `<span class="mark">${mark}</span>` : ""}${s !== "later" ? `<span class="cap">${title}</span>` : ""}</button>`;
@@ -649,7 +650,7 @@ function tickCountdowns() {
 function showCover(night) {
   const cv = covers[night.n] || {};
   $("coverImg").style.backgroundImage = cv.img ? `url(${cv.img})` : "";
-  $("coverLab").textContent = cv.label || "NIGHT " + night.n;
+  $("coverLab").textContent = epLabel(night);
   $("coverTitle").innerHTML = cv.title || "";
   const unlock = localToUTC(night.date, M.unlockHour, M.tz);
   $("coverWhen").textContent = `Opens ${stateOf(night) === "tonight" ? "tonight" : dayName(night.date)} at 9:00 pm`;
@@ -658,7 +659,7 @@ function showCover(night) {
 }
 function surprise(night) {
   $("coverImg").style.backgroundImage = "";
-  $("coverLab").textContent = "NIGHT " + night.n;
+  $("coverLab").textContent = epLabel(night);
   $("coverTitle").textContent = "It's a surprise…";
   $("coverWhen").textContent = `${dayName(night.date)} at 9:00 pm`;
   $("coverCount").textContent = "You'll see the cover the night before. No peeking, explorers!";
@@ -732,7 +733,7 @@ function drawEnd() {
   $("fbAgain").onclick = () => { R.i = 0; draw(); };
   $("fbSend").onclick = async () => {
     const f = collect();
-    const text = `Night ${n} · ${R.story.title.replace(/<[^>]+>/g, "")}\n${OLDER}'s best moment: ${f.m}\n${YOUNGER}'s best moment: ${f.l}\nNext time: ${f.x}`;
+    const text = `Episode ${n} · ${R.story.title.replace(/<[^>]+>/g, "")}\n${OLDER}'s best moment: ${f.m}\n${YOUNGER}'s best moment: ${f.l}\nNext time: ${f.x}`;
     try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { return; }
     try { await navigator.clipboard.writeText(text); $("fbSend").textContent = "Copied! Paste it to Dad"; } catch (e) { alert(text); }
   };
@@ -772,12 +773,13 @@ const SFX = (() => {
   let ctx = null, master = null, noiseBuf = null;
   const LEVELS = [1, 0.6, 0.3, 0], ICONS = ["🔊", "🔉", "🔈", "🔇"], BASE = 0.9;
   let lvl = Number(localStorage.getItem(STORE + "soundlvl") || (localStorage.getItem(STORE + "sound") === "off" ? 3 : 0)) || 0;
-  const buffers = {}, loading = {}; let META = {}, current = { place: null, life: null }, timers = [], token = 0;
+  const buffers = {}, loading = {}; let META = {}, current = { place: null, life: null, score: null }, timers = [], token = 0, shots = [], bus = null, t00 = 0;
   function label() { $("rSnd").textContent = `${ICONS[lvl]} Sounds`; $("rSnd").classList.toggle("off", lvl === 3); }
   function unlock() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
       ctx = new AC(); master = ctx.createGain(); master.gain.value = BASE * LEVELS[lvl]; master.connect(ctx.destination);
+      bus = {}; for (const b of ["place", "life", "score"]) { bus[b] = ctx.createGain(); bus[b].connect(master); } t00 = ctx.currentTime;
       noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
       const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     }
@@ -818,9 +820,9 @@ const SFX = (() => {
     }).then((b) => (buffers[id] = b)).catch(() => { delete loading[id]; return null; });
     return loading[id];
   }
-  function startLoop(id, vol) {
+  function startLoop(id, vol, slot) {
     const m = META[id]; if (!m) return null;
-    const out = gain(0); out.connect(master);
+    const out = gain(0); out.connect((bus && bus[slot]) || master);
     const L = { id, out, stop: null };
     if (m.synth) { const s = magicLoop(out); L.stop = s.stop; }
     else {
@@ -828,7 +830,7 @@ const SFX = (() => {
         if (!b || L.dead) return;
         const src = ctx.createBufferSource(); src.buffer = b; src.loop = true;
         src.loopStart = m.loopStart || 0; src.loopEnd = m.loopEnd || b.duration;
-        src.connect(out); src.start(0, (m.loopStart || 0) + Math.random() * Math.max(0, (m.loopEnd || b.duration) - (m.loopStart || 0) - 1));
+        src.connect(out); src.start(0, m.score ? (m.loopStart || 0) + ((ctx.currentTime - t00) % ((m.loopEnd || b.duration) - (m.loopStart || 0))) : (m.loopStart || 0) + Math.random() * Math.max(0, (m.loopEnd || b.duration) - (m.loopStart || 0) - 1));
         L.stop = () => { try { src.stop(); } catch (e) {} };
       });
     }
@@ -844,24 +846,35 @@ const SFX = (() => {
     const m = META[id]; if (!m || !ctx) return;
     const out = gain(vol * (m.vol || 1)); out.connect(master);
     if (m.synth) { const k = m.synth.split(":")[1]; (SYN[k] || SYN.chime)(out); setTimeout(() => out.disconnect(), 4000); return; }
-    get(id).then((b) => { if (!b) return; const src = ctx.createBufferSource(); src.buffer = b; src.connect(out); src.start(); src.onended = () => out.disconnect(); });
+    get(id).then((b) => { if (!b) return; const src = ctx.createBufferSource(); src.buffer = b; src.connect(out); src.start(); shots.push(out); duck(Math.min(2.5, b.duration));
+      src.onended = () => { out.disconnect(); shots = shots.filter((x) => x !== out); }; });
   }
+  /* music and background step back a little while a sound effect plays */
+  const muted = { place: false, life: false, score: false };
+  function ramp(g, v, d) { const t0 = ctx.currentTime; g.gain.cancelScheduledValues(t0); g.gain.setValueAtTime(g.gain.value, t0); g.gain.linearRampToValueAtTime(v, t0 + d); }
+  function duck(sec) { for (const b of ["place", "life", "score"]) if (!muted[b]) { const t0 = ctx.currentTime, lo = b === "score" ? 0.7 : 0.56; ramp(bus[b], lo, 0.15); bus[b].gain.setValueAtTime(lo, t0 + sec); bus[b].gain.linearRampToValueAtTime(1, t0 + sec + 0.8); } }
+  /* exact-word cues: "mute:all" = real silence (suspense), "restore:all" brings everything back */
+  function cue(what) { const [act, b] = what.split(":"); for (const k of b === "all" ? ["place", "life", "score"] : [b]) { muted[k] = act === "mute"; ramp(bus[k], muted[k] ? 0 : 1, act === "mute" ? 1.2 : 0.8); } }
   const MOMENT_VOL = { soft: 0.6, normal: 1, big: 1.1 };
   function page(snd) {
     if (!ctx) return;
     timers.forEach(clearTimeout); timers = []; const my = ++token;
     snd = snd || { place: null, life: null, m: [] };
-    for (const slot of ["place", "life"]) {
+    shots.forEach((o) => ramp(o, 0, 0.8)); shots = [];
+    for (const k of ["place", "life", "score"]) if (muted[k]) { muted[k] = false; ramp(bus[k], 1, 0.8); }
+    for (const slot of ["place", "life", "score"]) {
       const want = snd[slot] && META[snd[slot]] ? snd[slot] : null;
       if (current[slot] && current[slot].id === want) continue;           // same place: keep it playing smoothly
-      endLoop(current[slot]); current[slot] = want ? startLoop(want, slot === "life" ? 0.9 : 1) : null;
+      endLoop(current[slot]); current[slot] = want ? startLoop(want, slot === "life" ? 0.9 : 1, slot) : null;
     }
+    if (snd.turn && META[snd.turn]) timers.push(setTimeout(() => { if (my === token) shot(snd.turn, 1); }, 300));
+    (snd.cues || []).forEach((c) => timers.push(setTimeout(() => { if (my === token) cue(c.do); }, Math.max(0.4, c.c / PACE.cps) * 1000)));
     (snd.m || []).forEach((m) => { if (META[m.id]) timers.push(setTimeout(() => { if (my === token) shot(m.id, MOMENT_VOL[snd.vol] || 1); }, (m.c != null ? Math.max(0.6, Math.min(80, m.c / PACE.cps)) : (m.at || 0.6)) * 1000)); });
   }
-  function stop() { if (!ctx) return; timers.forEach(clearTimeout); timers = []; token++; endLoop(current.place, 0.8); endLoop(current.life, 0.8); current = { place: null, life: null }; }
+  function stop() { if (!ctx) return; timers.forEach(clearTimeout); timers = []; token++; endLoop(current.place, 0.8); endLoop(current.life, 0.8); endLoop(current.score, 0.8); current = { place: null, life: null, score: null }; }
   function cycle() { unlock(); lvl = (lvl + 1) % LEVELS.length; localStorage.setItem(STORE + "soundlvl", lvl);
     master.gain.linearRampToValueAtTime(BASE * LEVELS[lvl], ctx.currentTime + 0.3); label(); }
-  const state = () => ({ place: current.place && current.place.id, life: current.life && current.life.id, pending: timers.length, loaded: Object.keys(buffers).length, level: LEVELS[lvl] });
+  const state = () => ({ place: current.place && current.place.id, life: current.life && current.life.id, score: current.score && current.score.id, pending: timers.length, loaded: Object.keys(buffers).length, level: LEVELS[lvl] });
   return { unlock, load, page, stop, cycle, state };
 })();
 
