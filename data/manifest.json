@@ -2,7 +2,7 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "jeQKJzCYY0lwGm5+c4ckSV4hJW7rEYxKgSljOylCFJmZ19Ll1VMYYCs=",
+ "check": "Teni62Y0Sf7I1bgGvUTorT+skK4Hj8qhwju0fKRUa04EltHaBXL4ePM=",
  "tz": "America/New_York",
  "unlockHour": 21,
  "preview": false,
@@ -155,7 +155,7 @@
    "n": 19,
    "date": "2026-11-30",
    "pages": 33,
-   "images": 0,
+   "images": 33,
    "week": 4,
    "season": 2,
    "genre": "Comedy"
@@ -164,7 +164,7 @@
    "n": 20,
    "date": "2026-12-01",
    "pages": 36,
-   "images": 0,
+   "images": 36,
    "week": 4,
    "season": 2,
    "genre": "Suspense"

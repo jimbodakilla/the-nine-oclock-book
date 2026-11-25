@@ -709,8 +709,19 @@ function draw() {
     inner = `<div class="txt">${head}${body}</div>`;
   }
   el.innerHTML = `<div class="shade"></div>${inner}<div class="pnum">${p.num}</div>`;
+  fitShade(el, p);
   $("rPos").textContent = `${R.i + 1} / ${pages.length}`;
   $("rPrev").style.visibility = R.i === 0 ? "hidden" : "visible";
+}
+/* genre episodes: the shade follows the words, so the picture stays visible */
+function fitShade(el, p) {
+  if (!R.story || R.story.n < 19 || (p.kind !== "story" && p.kind !== "title")) return;
+  const t = el.querySelector(".txt"), sh = el.querySelector(".shade"); if (!t || !sh || !el.clientHeight) return;
+  const set = () => {
+    sh.style.height = Math.min(100, 125 * (t.offsetTop + t.offsetHeight) / el.clientHeight) + "%";
+    sh.style.background = p.tpl === "warm" ? "linear-gradient(#EFE3C8eb 0%,#EFE3C8e6 72%,#EFE3C800 100%)" : "linear-gradient(#0e1530e6 0%,#0e1530de 72%,#0e153000 100%)";
+  };
+  set(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(set);
 }
 function drawEnd() {
   const OLDER = (META && META.older) || "Big brother", YOUNGER = (META && META.younger) || "Little brother";
