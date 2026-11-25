@@ -2,7 +2,7 @@
  "v": 1,
  "salt": "MOoOBjiNFAFCF/qkiS8h4g==",
  "iter": 310000,
- "check": "qR9qXa6XKJH4pPhWjfTt0lOXHLZ/CuHQkxHd+xDY/+XpSXIzRvnCM4o=",
+ "check": "F1/ZzoAyU9XLIKcj0FhGn2oIhZoLLJPNlC77AmDSdkgdOykZ5Z61NwU=",
  "tz": "America/New_York",
  "unlockHour": 21,
  "preview": false,
@@ -146,12 +146,13 @@
    "season": 2
   },
   {
-   "n": 18,
+   "n": 21,
    "date": "2026-11-29",
-   "pages": 29,
-   "images": 29,
+   "pages": 37,
+   "images": 0,
    "week": 3,
-   "season": 2
+   "season": 2,
+   "genre": "Action"
   },
   {
    "n": 16,
@@ -170,13 +171,12 @@
    "season": 2
   },
   {
-   "n": 21,
+   "n": 18,
    "date": "2026-12-02",
-   "pages": 37,
-   "images": 0,
+   "pages": 29,
+   "images": 29,
    "week": 4,
-   "season": 2,
-   "genre": "Action"
+   "season": 2
   }
  ],
  "weekNames": {
